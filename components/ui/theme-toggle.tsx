@@ -58,7 +58,7 @@ function ThemeIcon({ theme }: { theme: Theme }) {
 }
 
 export default function ThemeToggle() {
-  const theme = useSyncExternalStore(
+  const theme = useSyncExternalStore<Theme>(
     subscribeToTheme,
     getStoredTheme,
     () => "light",
