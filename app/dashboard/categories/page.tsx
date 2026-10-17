@@ -2,12 +2,17 @@
 
 import {
   getCategoriesIndexQueryKey,
+  getCategoriesShowQueryKey,
+  useCategoriesDestroy,
   useCategoriesIndex,
 } from "@/lib/api/generated";
 import type { CategoriesIndexParams } from "@/lib/api/generated/models";
 import { useAccessToken } from "@/lib/auth/session";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "react-toastify";
+import RowActions from "@/components/dashboard/row-actions";
 
 type CategoryRow = {
   id: string;
@@ -65,6 +70,7 @@ function formatDate(value: string | null) {
 
 export default function CategoriesPage() {
   const accessToken = useAccessToken();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const params: CategoriesIndexParams = { limit: 15, page };
   const categoriesQuery = useCategoriesIndex(params, {
@@ -77,6 +83,63 @@ export default function CategoriesPage() {
       retry: false,
     },
   });
+  const deleteCategory = useCategoriesDestroy({
+    fetch: accessToken
+      ? { headers: { Authorization: `Bearer ${accessToken}` } }
+      : undefined,
+  });
+  const currentPageItemCount =
+    categoriesQuery.data?.status === 200 &&
+    Array.isArray(categoriesQuery.data.data.data.items)
+      ? categoriesQuery.data.data.data.items.length
+      : 0;
+
+  function handleDelete(category: CategoryRow) {
+    if (
+      !window.confirm(
+        `Tem certeza que deseja excluir a categoria "${category.name}"?`,
+      )
+    ) {
+      return;
+    }
+
+    deleteCategory.mutate(
+      { category: category.id },
+      {
+        onSuccess: (response) => {
+          if (response.status !== 200) {
+            const message =
+              typeof response.data === "object" &&
+              response.data !== null &&
+              "message" in response.data &&
+              typeof response.data.message === "string"
+                ? response.data.message
+                : `Não foi possível excluir a categoria (HTTP ${response.status}).`;
+            toast.error(message);
+            return;
+          }
+
+          toast.success("Categoria excluída com sucesso.");
+          void queryClient.invalidateQueries({
+            queryKey: getCategoriesIndexQueryKey(),
+          });
+          void queryClient.invalidateQueries({
+            queryKey: getCategoriesShowQueryKey(category.id),
+          });
+          if (currentPageItemCount === 1 && page > 1) {
+            setPage((current) => current - 1);
+          }
+        },
+        onError: (error) => {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Não foi possível conectar à API para excluir a categoria.",
+          );
+        },
+      },
+    );
+  }
 
   if (categoriesQuery.isPending) {
     return <p className="text-foreground/70">Carregando categorias...</p>;
@@ -169,12 +232,21 @@ export default function CategoriesPage() {
                     {formatDate(category.createdAt)}
                   </td>
                   <td className="px-5 py-4">
-                    <Link
-                      href={`/dashboard/categories/${encodeURIComponent(category.id)}/edit`}
-                      className="font-medium underline underline-offset-4 hover:opacity-70"
-                    >
-                      Editar
-                    </Link>
+                    <RowActions
+                      label={category.name}
+                      editHref={`/dashboard/categories/${encodeURIComponent(category.id)}/edit`}
+                      onDelete={() => handleDelete(category)}
+                      deletePending={
+                        deleteCategory.isPending &&
+                        deleteCategory.variables?.category === category.id
+                      }
+                      deleteLabel={
+                        deleteCategory.isPending &&
+                        deleteCategory.variables?.category === category.id
+                          ? "Excluindo..."
+                          : "Excluir"
+                      }
+                    />
                   </td>
                 </tr>
               ))}

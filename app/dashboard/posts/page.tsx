@@ -2,12 +2,17 @@
 
 import {
   getPostsIndexQueryKey,
+  getPostsShowQueryKey,
+  usePostsDelete,
   usePostsIndex,
 } from "@/lib/api/generated";
 import type { PostsIndexParams } from "@/lib/api/generated/models";
 import { useAccessToken } from "@/lib/auth/session";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
+import { toast } from "react-toastify";
+import RowActions from "@/components/dashboard/row-actions";
 
 type PostRow = {
   id: string;
@@ -100,6 +105,7 @@ function statusClasses(status: string) {
 
 export default function PostsPage() {
   const accessToken = useAccessToken();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -120,6 +126,59 @@ export default function PostsPage() {
       retry: false,
     },
   });
+  const deletePost = usePostsDelete({
+    fetch: accessToken
+      ? { headers: { Authorization: `Bearer ${accessToken}` } }
+      : undefined,
+  });
+  const currentPageItemCount =
+    postsQuery.data?.status === 200 &&
+    Array.isArray(postsQuery.data.data.data.items)
+      ? postsQuery.data.data.data.items.length
+      : 0;
+
+  function handleDelete(post: PostRow) {
+    if (!window.confirm(`Tem certeza que deseja excluir o post "${post.title}"?`)) {
+      return;
+    }
+
+    deletePost.mutate(
+      { postResource: post.id },
+      {
+        onSuccess: (response) => {
+          if (response.status !== 200) {
+            const message =
+              typeof response.data === "object" &&
+              response.data !== null &&
+              "message" in response.data &&
+              typeof response.data.message === "string"
+                ? response.data.message
+                : `Não foi possível excluir o post (HTTP ${response.status}).`;
+            toast.error(message);
+            return;
+          }
+
+          toast.success("Post excluído com sucesso.");
+          void queryClient.invalidateQueries({
+            queryKey: getPostsIndexQueryKey(),
+          });
+          void queryClient.invalidateQueries({
+            queryKey: getPostsShowQueryKey(post.id),
+          });
+          if (currentPageItemCount === 1 && page > 1) {
+            setPage((current) => current - 1);
+          }
+        },
+        onError: (error) => {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Não foi possível conectar à API para excluir o post.",
+          );
+        },
+      },
+    );
+  }
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -251,12 +310,21 @@ export default function PostsPage() {
                     {formatDate(post.publishedAt)}
                   </td>
                   <td className="px-5 py-4">
-                    <Link
-                      href={`/dashboard/posts/${encodeURIComponent(post.id)}/edit`}
-                      className="font-medium underline underline-offset-4 hover:opacity-70"
-                    >
-                      Editar
-                    </Link>
+                    <RowActions
+                      label={post.title}
+                      editHref={`/dashboard/posts/${encodeURIComponent(post.id)}/edit`}
+                      onDelete={() => handleDelete(post)}
+                      deletePending={
+                        deletePost.isPending &&
+                        deletePost.variables?.postResource === post.id
+                      }
+                      deleteLabel={
+                        deletePost.isPending &&
+                        deletePost.variables?.postResource === post.id
+                          ? "Excluindo..."
+                          : "Excluir"
+                      }
+                    />
                   </td>
                 </tr>
               ))}
