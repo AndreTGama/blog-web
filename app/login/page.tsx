@@ -1,6 +1,6 @@
 import Image from "next/image";
-import Login from "@/components/Forms/login";
-import Card from "@/components/Cards/card";
+import Login from "@/components/forms/login";
+import Card from "@/components/cards/card";
 
 export default function page() {
   return (
