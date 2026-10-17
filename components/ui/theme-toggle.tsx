@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 
 type Theme = "light" | "dark";
+const THEME_STORAGE_KEY = "theme";
+
+let currentTheme: Theme = "light";
+let hasReadStoredTheme = false;
+const subscribers = new Set<() => void>();
 
 const options: { value: Theme; label: string }[] = [
   { value: "light", label: "Ativar tema claro" },
@@ -10,17 +15,45 @@ const options: { value: Theme; label: string }[] = [
 ];
 
 function getStoredTheme(): Theme {
-  const savedTheme = window.localStorage.getItem("theme");
+  const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
   return savedTheme === "dark" ? "dark" : "light";
 }
 
+function getThemeSnapshot(): Theme {
+  return currentTheme;
+}
+
+function updateTheme(theme: Theme) {
+  currentTheme = theme;
+  hasReadStoredTheme = true;
+  window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  applyTheme(theme);
+  subscribers.forEach((subscriber) => subscriber());
+}
+
 function subscribeToTheme(onChange: () => void) {
-  window.addEventListener("storage", onChange);
-  window.addEventListener("theme-change", onChange);
+  subscribers.add(onChange);
+
+  if (!hasReadStoredTheme) {
+    currentTheme = getStoredTheme();
+    hasReadStoredTheme = true;
+    applyTheme(currentTheme);
+    onChange();
+  }
+
+  function handleStorageChange(event: StorageEvent) {
+    if (event.key !== THEME_STORAGE_KEY && event.key !== null) return;
+
+    currentTheme = getStoredTheme();
+    applyTheme(currentTheme);
+    subscribers.forEach((subscriber) => subscriber());
+  }
+
+  window.addEventListener("storage", handleStorageChange);
 
   return () => {
-    window.removeEventListener("storage", onChange);
-    window.removeEventListener("theme-change", onChange);
+    subscribers.delete(onChange);
+    window.removeEventListener("storage", handleStorageChange);
   };
 }
 
@@ -28,6 +61,7 @@ function applyTheme(theme: Theme) {
   const isDark = theme === "dark";
 
   document.documentElement.classList.toggle("dark", isDark);
+  document.documentElement.classList.toggle("light", !isDark);
   document.documentElement.style.colorScheme = isDark ? "dark" : "light";
 }
 
@@ -58,20 +92,14 @@ function ThemeIcon({ theme }: { theme: Theme }) {
 }
 
 export default function ThemeToggle() {
-  const theme = useSyncExternalStore<Theme>(
+  const theme = useSyncExternalStore(
     subscribeToTheme,
-    getStoredTheme,
+    getThemeSnapshot,
     () => "light",
   );
 
-  useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
-
   function selectTheme(nextTheme: Theme) {
-    window.localStorage.setItem("theme", nextTheme);
-    window.dispatchEvent(new Event("theme-change"));
-    applyTheme(nextTheme);
+    updateTheme(nextTheme);
   }
 
   return (
