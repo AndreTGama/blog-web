@@ -5,6 +5,7 @@ import { saveAccessToken } from "@/lib/auth/session";
 import type { LoginRequest } from "@/lib/api/generated/models";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { toast } from "react-toastify";
 import Input from "../ui/input";
 import ThemeToggle from "../ui/theme-toggle";
 
@@ -12,12 +13,11 @@ export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
   const loginMutation = useAuthLogin({
     mutation: {
       onSuccess: (response) => {
         if (response.status !== 200) {
-          setErrorMessage(response.data.message);
+          toast.error(response.data.message || "E-mail ou senha incorretos.");
           return;
         }
 
@@ -27,16 +27,17 @@ export default function Login() {
           !("data" in result) ||
           typeof result.data.access_token !== "string"
         ) {
-          setErrorMessage("A API retornou uma resposta de login inválida.");
+          toast.error("A API retornou uma resposta de login inválida.");
           return;
         }
 
         saveAccessToken(result.data.access_token);
+        toast.success("Login realizado com sucesso!");
         router.replace("/dashboard");
         router.refresh();
       },
       onError: (error) => {
-        setErrorMessage(
+        toast.error(
           error instanceof Error
             ? error.message
             : "Não foi possível conectar à API de autenticação.",
@@ -47,7 +48,6 @@ export default function Login() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrorMessage("");
 
     const credentials: LoginRequest = { email, password };
     loginMutation.mutate({ data: credentials });
@@ -82,11 +82,6 @@ export default function Login() {
             onChange={(event) => setPassword(event.target.value)}
           />
         </div>
-        {errorMessage && (
-          <p className="mb-4 text-sm text-red-700 dark:text-red-300" role="alert">
-            {errorMessage}
-          </p>
-        )}
         <button
           type="submit"
           disabled={loginMutation.isPending}
