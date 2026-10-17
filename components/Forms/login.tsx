@@ -1,11 +1,17 @@
 "use client";
 
 import Input from "../ui/input";
+import ThemeToggle from "../ui/theme-toggle";
 
 export default function Login() {
   return (
     <>
-      <h1 className="text-2xl text-center font-semibold mb-4">Login</h1>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
+          Login
+        </h1>
+        <ThemeToggle />
+      </div>
       <form action="#" method="POST">
         <div className="mb-6">
           <Input
@@ -27,7 +33,7 @@ export default function Login() {
         </div>
         <button
           type="submit"
-          className="bg-red-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full"
+          className="w-full rounded-md bg-red-500 px-4 py-2 font-semibold text-white hover:bg-blue-600"
         >
           Login
         </button>

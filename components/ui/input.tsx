@@ -13,7 +13,10 @@ export default function Input({
 }: InputProps) {
   return (
     <>
-      <label htmlFor={id} className="block font-bold text-gray-900 mb-2">
+      <label
+        htmlFor={id}
+        className="mb-2 block font-bold text-gray-900 dark:text-slate-100"
+      >
         {label}
       </label>
       <input
@@ -23,7 +26,7 @@ export default function Input({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500"
+        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400"
       />
     </>
   );

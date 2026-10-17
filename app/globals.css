@@ -10,24 +10,20 @@
 }
 
 :root {
+  color-scheme: light;
   --background: rgb(230, 230, 230);
   --foreground: rgb(24, 24, 24);
-  --button-hover-background: rgb(34, 34, 34);
-  --button-hover-foreground: rgb(245, 245, 245);
-}
-
-html {
-  background: var(--background);
 }
 
 html.dark {
+  color-scheme: dark;
   --background: var(--color-background-dark);
   --foreground: rgb(245, 245, 245);
-  --button-hover-background: rgb(230, 230, 230);
-  --button-hover-foreground: rgb(24, 24, 24);
 }
 
+html,
 body {
+  min-height: 100%;
   background: var(--background);
   color: var(--foreground);
 }
