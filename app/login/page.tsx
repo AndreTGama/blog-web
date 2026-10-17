@@ -5,7 +5,7 @@ import Card from "@/components/Cards/card";
 export default function page() {
   return (
     <main>
-      <div className="flex min-h-screen items-center justify-center bg-sky-100 dark:bg-slate-950">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="w-1/2 h-screen hidden lg:block relative">
           <Image
             src="https://img.freepik.com/fotos-premium/imagen-fondo_910766-187.jpg?w=826"

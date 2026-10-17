@@ -77,7 +77,7 @@ export default function ThemeToggle() {
   return (
     <div
       aria-label="Tema de cores"
-      className="inline-flex rounded-full bg-slate-200 p-1 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+      className="inline-flex rounded-full bg-foreground/10 p-1 text-foreground"
       role="group"
     >
       {options.map((option) => (
@@ -87,10 +87,10 @@ export default function ThemeToggle() {
           aria-label={option.label}
           aria-pressed={theme === option.value}
           onClick={() => selectTheme(option.value)}
-          className={`flex size-8 items-center justify-center rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
+          className={`flex size-8 items-center justify-center rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground ${
             theme === option.value
-              ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
-              : "hover:bg-white/70 hover:text-slate-900 dark:hover:bg-slate-700/70 dark:hover:text-white"
+              ? "bg-background text-foreground shadow-sm"
+              : "hover:bg-background/70"
           }`}
         >
           <ThemeIcon theme={option.value} />

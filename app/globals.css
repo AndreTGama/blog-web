@@ -4,8 +4,6 @@
 
 @theme {
   --color-background: var(--background);
-  --color-background-dark: rgb(34, 34, 34);
-  --color-light: rgb(245, 245, 245);
   --color-foreground: var(--foreground);
 }
 
@@ -13,12 +11,16 @@
   color-scheme: light;
   --background: rgb(230, 230, 230);
   --foreground: rgb(24, 24, 24);
+  --button-hover-background: rgb(34, 34, 34);
+  --button-hover-foreground: rgb(245, 245, 245);
 }
 
 html.dark {
   color-scheme: dark;
-  --background: var(--color-background-dark);
+  --background: rgb(34, 34, 34);
   --foreground: rgb(245, 245, 245);
+  --button-hover-background: rgb(230, 230, 230);
+  --button-hover-foreground: rgb(24, 24, 24);
 }
 
 html,

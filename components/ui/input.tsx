@@ -15,7 +15,7 @@ export default function Input({
     <>
       <label
         htmlFor={id}
-        className="mb-2 block font-bold text-gray-900 dark:text-slate-100"
+        className="mb-2 block font-bold text-foreground"
       >
         {label}
       </label>
@@ -26,7 +26,7 @@ export default function Input({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400"
+        className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-foreground placeholder:text-foreground/50 focus:border-foreground focus:outline-none"
       />
     </>
   );
