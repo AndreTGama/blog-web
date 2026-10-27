@@ -10,6 +10,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import ThemeToggle from "@/components/ui/theme-toggle";
+import Navbar from "../nav/navbar";
+import HeaderMain from "../headers/header-main";
 
 const CONTENT_LIMIT = 12;
 const API_PAGE_SIZE = 100;
@@ -111,7 +113,9 @@ function formatDate(dateValue: string | null | undefined) {
 function PostsError({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="rounded-2xl border border-foreground/10 bg-background p-8 text-center">
-      <h2 className="text-lg font-semibold">Não foi possível carregar os artigos</h2>
+      <h2 className="text-lg font-semibold">
+        Não foi possível carregar os artigos
+      </h2>
       <p className="mt-2 text-sm text-foreground/65">
         Verifique se a API está disponível e tente novamente.
       </p>
@@ -155,9 +159,7 @@ export default function PublicHome() {
   const postPayload =
     postsQuery.data?.status === 200 ? postsQuery.data.data.data : null;
   const posts =
-    postPayload === null
-      ? null
-      : readItems(postPayload.items, parsePost);
+    postPayload === null ? null : readItems(postPayload.items, parsePost);
 
   const categoryPayload =
     categoriesQuery.data?.status === 200
@@ -170,9 +172,7 @@ export default function PublicHome() {
 
   const publishedPosts = useMemo(
     () =>
-      (posts ?? []).filter(
-        (post) => post.status.toLowerCase() === "published",
-      ),
+      (posts ?? []).filter((post) => post.status.toLowerCase() === "published"),
     [posts],
   );
 
@@ -188,16 +188,17 @@ export default function PublicHome() {
       selectedCategories.length > 0
         ? publishedPosts.filter((post) =>
             selectedCategories.some((categoryId) =>
-              post.categories?.some(
-                (category) => category.id === categoryId,
-              ),
+              post.categories?.some((category) => category.id === categoryId),
             ),
           )
         : publishedPosts,
     [publishedPosts, selectedCategories],
   );
 
-  const pageCount = Math.max(1, Math.ceil(filteredPosts.length / CONTENT_LIMIT));
+  const pageCount = Math.max(
+    1,
+    Math.ceil(filteredPosts.length / CONTENT_LIMIT),
+  );
   const currentPage = Math.min(page, pageCount);
   const pagePosts = filteredPosts.slice(
     (currentPage - 1) * CONTENT_LIMIT,
@@ -225,67 +226,17 @@ export default function PublicHome() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <nav
-        aria-label="Navegação principal"
-        className="border-b border-foreground/10"
-      >
-        <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
-          <Link
-            href="/"
-            aria-label="Blog de tecnologia - início"
-            className="inline-flex items-center gap-3"
-          >
-            <span className="flex size-10 items-center justify-center rounded-xl bg-foreground text-sm font-bold text-background">
-              &lt;/&gt;
-            </span>
-            <span className="font-semibold tracking-tight">Blog de tecnologia</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <a
-              href="#conteudos"
-              className="hidden text-sm text-foreground/70 transition-colors hover:text-foreground sm:inline"
-            >
-              Conteúdos
-            </a>
-            <ThemeToggle />
-          </div>
-        </div>
-      </nav>
-
-      <header className="relative isolate overflow-hidden border-b border-foreground/10">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 opacity-50"
-          style={{
-            background:
-              "radial-gradient(ellipse at 80% 20%, color-mix(in srgb, var(--foreground) 10%, transparent), transparent 38%), radial-gradient(ellipse at 10% 90%, color-mix(in srgb, var(--foreground) 7%, transparent), transparent 42%)",
-          }}
-        />
-        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-foreground/55">
-            Engenharia de software, sem atalhos
-          </p>
-          <h1 className="mt-5 max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-6xl">
-            Ideias, padrões e código para construir melhor.
-          </h1>
-          <p className="mt-6 max-w-2xl text-base leading-7 text-foreground/65 sm:text-lg">
-            Conteúdos sobre arquitetura, padrões de projeto e desenvolvimento,
-            com exemplos práticos para levar da leitura ao código.
-          </p>
-          <a
-            href="#conteudos"
-            className="mt-8 inline-flex rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-80"
-          >
-            Explorar conteúdos
-          </a>
-        </div>
-      </header>
+      <Navbar />
+      <HeaderMain />
 
       <main
         id="conteudos"
         className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-14 lg:py-20"
       >
-        <aside aria-label="Filtros de conteúdo" className="lg:sticky lg:top-8 lg:self-start">
+        <aside
+          aria-label="Filtros de conteúdo"
+          className="lg:sticky lg:top-8 lg:self-start"
+        >
           <h2 className="text-sm font-semibold uppercase tracking-[0.16em]">
             Categorias
           </h2>
@@ -392,7 +343,9 @@ export default function PublicHome() {
 
           {!postsQuery.isPending && !postsError && pagePosts.length === 0 && (
             <div className="mt-6 rounded-2xl border border-dashed border-foreground/20 px-6 py-16 text-center">
-              <p className="font-medium">Ainda não há conteúdos nesta categoria.</p>
+              <p className="font-medium">
+                Ainda não há conteúdos nesta categoria.
+              </p>
               <p className="mt-2 text-sm text-foreground/60">
                 Escolha outra categoria para ver mais artigos.
               </p>
@@ -449,7 +402,8 @@ export default function PublicHome() {
                     </p>
                     <div className="mt-5 flex items-center justify-between gap-3 border-t border-foreground/10 pt-4 text-xs text-foreground/50">
                       <span>
-                        {formatDate(post.published_at)} · {post.views} visualizações
+                        {formatDate(post.published_at)} · {post.views}{" "}
+                        visualizações
                       </span>
                       <Link
                         href={`/artigos/${encodeURIComponent(post.id)}`}
@@ -503,7 +457,10 @@ export default function PublicHome() {
           <nav aria-label="Mapa do site">
             <ul className="flex gap-5 text-sm text-foreground/65">
               <li>
-                <Link href="/" className="transition-colors hover:text-foreground">
+                <Link
+                  href="/"
+                  className="transition-colors hover:text-foreground"
+                >
                   Início
                 </Link>
               </li>
