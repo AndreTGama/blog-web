@@ -9,9 +9,14 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
@@ -124,7 +129,7 @@ export const getPostsIndexQueryKey = (params?: PostsIndexParams,) => {
     }
 
 
-export const getPostsIndexQueryOptions = <TData = Awaited<ReturnType<typeof postsIndex>>, TError = AuthenticationExceptionResponse | ValidationExceptionResponse>(params?: PostsIndexParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof postsIndex>>, TError, TData>, fetch?: RequestInit}
+export const getPostsIndexQueryOptions = <TData = Awaited<ReturnType<typeof postsIndex>>, TError = AuthenticationExceptionResponse | ValidationExceptionResponse>(params?: PostsIndexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsIndex>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
@@ -139,25 +144,49 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 
 
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof postsIndex>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof postsIndex>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type PostsIndexQueryResult = NonNullable<Awaited<ReturnType<typeof postsIndex>>>
 export type PostsIndexQueryError = AuthenticationExceptionResponse | ValidationExceptionResponse
 
 
+export function usePostsIndex<TData = Awaited<ReturnType<typeof postsIndex>>, TError = AuthenticationExceptionResponse | ValidationExceptionResponse>(
+ params: undefined |  PostsIndexParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsIndex>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof postsIndex>>,
+          TError,
+          Awaited<ReturnType<typeof postsIndex>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePostsIndex<TData = Awaited<ReturnType<typeof postsIndex>>, TError = AuthenticationExceptionResponse | ValidationExceptionResponse>(
+ params?: PostsIndexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsIndex>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof postsIndex>>,
+          TError,
+          Awaited<ReturnType<typeof postsIndex>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePostsIndex<TData = Awaited<ReturnType<typeof postsIndex>>, TError = AuthenticationExceptionResponse | ValidationExceptionResponse>(
+ params?: PostsIndexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsIndex>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Retrieve a paginated list of posts
  */
 
 export function usePostsIndex<TData = Awaited<ReturnType<typeof postsIndex>>, TError = AuthenticationExceptionResponse | ValidationExceptionResponse>(
- params?: PostsIndexParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof postsIndex>>, TError, TData>, fetch?: RequestInit}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+ params?: PostsIndexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsIndex>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getPostsIndexQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return withQueryKey(query, queryOptions.queryKey);
 }
@@ -282,13 +311,13 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  */
 export const usePostsStore = <TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ValidationExceptionResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postsStore>>, TError,PostsStoreMutationVariables, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postsStore>>,
         TError,
         PostsStoreMutationVariables,
         TContext
       > => {
-      return useMutation(getPostsStoreMutationOptions(options));
+      return useMutation(getPostsStoreMutationOptions(options), queryClient);
     }
     export type postsShowResponse200 = {
   data: PostsShow200
@@ -354,7 +383,7 @@ export const getPostsShowQueryKey = (postResource: string,) => {
     }
 
 
-export const getPostsShowQueryOptions = <TData = Awaited<ReturnType<typeof postsShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(postResource: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>, fetch?: RequestInit}
+export const getPostsShowQueryOptions = <TData = Awaited<ReturnType<typeof postsShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(postResource: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
@@ -369,25 +398,49 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 
 
 
-   return  { queryKey, queryFn, enabled: postResource !== null && postResource !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, enabled: postResource !== null && postResource !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type PostsShowQueryResult = NonNullable<Awaited<ReturnType<typeof postsShow>>>
 export type PostsShowQueryError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse
 
 
+export function usePostsShow<TData = Awaited<ReturnType<typeof postsShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(
+ postResource: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof postsShow>>,
+          TError,
+          Awaited<ReturnType<typeof postsShow>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePostsShow<TData = Awaited<ReturnType<typeof postsShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(
+ postResource: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof postsShow>>,
+          TError,
+          Awaited<ReturnType<typeof postsShow>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePostsShow<TData = Awaited<ReturnType<typeof postsShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(
+ postResource: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Display the specified post
  */
 
 export function usePostsShow<TData = Awaited<ReturnType<typeof postsShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(
- postResource: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>, fetch?: RequestInit}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+ postResource: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getPostsShowQueryOptions(postResource,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return withQueryKey(query, queryOptions.queryKey);
 }
@@ -518,13 +571,13 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  */
 export const usePostsUpdate = <TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ModelNotFoundExceptionResponse | ValidationExceptionResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postsUpdate>>, TError,PostsUpdateMutationVariables, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postsUpdate>>,
         TError,
         PostsUpdateMutationVariables,
         TContext
       > => {
-      return useMutation(getPostsUpdateMutationOptions(options));
+      return useMutation(getPostsUpdateMutationOptions(options), queryClient);
     }
     export type postsDeleteResponse200 = {
   data: PostsDelete200
@@ -627,13 +680,13 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  */
 export const usePostsDelete = <TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ModelNotFoundExceptionResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postsDelete>>, TError,PostsDeleteMutationVariables, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postsDelete>>,
         TError,
         PostsDeleteMutationVariables,
         TContext
       > => {
-      return useMutation(getPostsDeleteMutationOptions(options));
+      return useMutation(getPostsDeleteMutationOptions(options), queryClient);
     }
     export type postsRestoreResponse200 = {
   data: PostsRestore200
@@ -736,11 +789,11 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  */
 export const usePostsRestore = <TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ModelNotFoundExceptionResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postsRestore>>, TError,PostsRestoreMutationVariables, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postsRestore>>,
         TError,
         PostsRestoreMutationVariables,
         TContext
       > => {
-      return useMutation(getPostsRestoreMutationOptions(options));
+      return useMutation(getPostsRestoreMutationOptions(options), queryClient);
     }

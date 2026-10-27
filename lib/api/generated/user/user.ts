@@ -9,9 +9,14 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
@@ -133,7 +138,7 @@ export const getUsersIndexQueryKey = (params?: UsersIndexParams,) => {
     }
 
 
-export const getUsersIndexQueryOptions = <TData = Awaited<ReturnType<typeof usersIndex>>, TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ValidationExceptionResponse>(params?: UsersIndexParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof usersIndex>>, TError, TData>, fetch?: RequestInit}
+export const getUsersIndexQueryOptions = <TData = Awaited<ReturnType<typeof usersIndex>>, TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ValidationExceptionResponse>(params?: UsersIndexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersIndex>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
@@ -148,25 +153,49 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 
 
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof usersIndex>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof usersIndex>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type UsersIndexQueryResult = NonNullable<Awaited<ReturnType<typeof usersIndex>>>
 export type UsersIndexQueryError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ValidationExceptionResponse
 
 
+export function useUsersIndex<TData = Awaited<ReturnType<typeof usersIndex>>, TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ValidationExceptionResponse>(
+ params: undefined |  UsersIndexParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersIndex>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof usersIndex>>,
+          TError,
+          Awaited<ReturnType<typeof usersIndex>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUsersIndex<TData = Awaited<ReturnType<typeof usersIndex>>, TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ValidationExceptionResponse>(
+ params?: UsersIndexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersIndex>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof usersIndex>>,
+          TError,
+          Awaited<ReturnType<typeof usersIndex>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUsersIndex<TData = Awaited<ReturnType<typeof usersIndex>>, TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ValidationExceptionResponse>(
+ params?: UsersIndexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersIndex>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Retrieve a paginated list of users
  */
 
 export function useUsersIndex<TData = Awaited<ReturnType<typeof usersIndex>>, TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ValidationExceptionResponse>(
- params?: UsersIndexParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof usersIndex>>, TError, TData>, fetch?: RequestInit}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+ params?: UsersIndexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersIndex>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getUsersIndexQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return withQueryKey(query, queryOptions.queryKey);
 }
@@ -300,13 +329,13 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  */
 export const useUsersStore = <TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ValidationExceptionResponse | UsersStore500,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersStore>>, TError,UsersStoreMutationVariables, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof usersStore>>,
         TError,
         UsersStoreMutationVariables,
         TContext
       > => {
-      return useMutation(getUsersStoreMutationOptions(options));
+      return useMutation(getUsersStoreMutationOptions(options), queryClient);
     }
     export type usersShowResponse200 = {
   data: UsersShow200
@@ -379,7 +408,7 @@ export const getUsersShowQueryKey = (user: string,) => {
     }
 
 
-export const getUsersShowQueryOptions = <TData = Awaited<ReturnType<typeof usersShow>>, TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ModelNotFoundExceptionResponse>(user: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof usersShow>>, TError, TData>, fetch?: RequestInit}
+export const getUsersShowQueryOptions = <TData = Awaited<ReturnType<typeof usersShow>>, TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ModelNotFoundExceptionResponse>(user: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersShow>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
@@ -394,25 +423,49 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 
 
 
-   return  { queryKey, queryFn, enabled: user !== null && user !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof usersShow>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, enabled: user !== null && user !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof usersShow>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type UsersShowQueryResult = NonNullable<Awaited<ReturnType<typeof usersShow>>>
 export type UsersShowQueryError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ModelNotFoundExceptionResponse
 
 
+export function useUsersShow<TData = Awaited<ReturnType<typeof usersShow>>, TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ModelNotFoundExceptionResponse>(
+ user: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersShow>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof usersShow>>,
+          TError,
+          Awaited<ReturnType<typeof usersShow>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUsersShow<TData = Awaited<ReturnType<typeof usersShow>>, TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ModelNotFoundExceptionResponse>(
+ user: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersShow>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof usersShow>>,
+          TError,
+          Awaited<ReturnType<typeof usersShow>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUsersShow<TData = Awaited<ReturnType<typeof usersShow>>, TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ModelNotFoundExceptionResponse>(
+ user: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersShow>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Display the specified user
  */
 
 export function useUsersShow<TData = Awaited<ReturnType<typeof usersShow>>, TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ModelNotFoundExceptionResponse>(
- user: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof usersShow>>, TError, TData>, fetch?: RequestInit}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+ user: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersShow>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getUsersShowQueryOptions(user,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return withQueryKey(query, queryOptions.queryKey);
 }
@@ -548,13 +601,13 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  */
 export const useUsersUpdate = <TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ModelNotFoundExceptionResponse | ValidationExceptionResponse | UsersUpdate500,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersUpdate>>, TError,UsersUpdateMutationVariables, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof usersUpdate>>,
         TError,
         UsersUpdateMutationVariables,
         TContext
       > => {
-      return useMutation(getUsersUpdateMutationOptions(options));
+      return useMutation(getUsersUpdateMutationOptions(options), queryClient);
     }
     export type usersDestroyResponse200 = {
   data: UsersDestroy200
@@ -662,13 +715,13 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  */
 export const useUsersDestroy = <TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ModelNotFoundExceptionResponse | UsersDestroy500,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersDestroy>>, TError,UsersDestroyMutationVariables, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof usersDestroy>>,
         TError,
         UsersDestroyMutationVariables,
         TContext
       > => {
-      return useMutation(getUsersDestroyMutationOptions(options));
+      return useMutation(getUsersDestroyMutationOptions(options), queryClient);
     }
     export type usersRestoreResponse200 = {
   data: UsersRestore200
@@ -771,11 +824,11 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  */
 export const useUsersRestore = <TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | UsersRestore500,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersRestore>>, TError,UsersRestoreMutationVariables, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof usersRestore>>,
         TError,
         UsersRestoreMutationVariables,
         TContext
       > => {
-      return useMutation(getUsersRestoreMutationOptions(options));
+      return useMutation(getUsersRestoreMutationOptions(options), queryClient);
     }

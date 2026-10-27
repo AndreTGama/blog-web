@@ -1,6 +1,8 @@
 "use client";
 
 import { getPostsShowQueryKey, usePostsShow } from "@/lib/api/generated";
+import PostContent from "@/components/home/post-content";
+import { useAccessToken } from "@/lib/auth/session";
 import Image from "next/image";
 import Link from "next/link";
 import ThemeToggle from "@/components/ui/theme-toggle";
@@ -15,9 +17,13 @@ function formatDate(dateValue: string | null) {
 }
 
 export default function ArticleDetail({ id }: { id: string }) {
+  const accessToken = useAccessToken();
   const articleQuery = usePostsShow(id, {
+    fetch: accessToken
+      ? { headers: { Authorization: `Bearer ${accessToken}` } }
+      : undefined,
     query: {
-      queryKey: getPostsShowQueryKey(id),
+      queryKey: [...getPostsShowQueryKey(id), accessToken],
       retry: false,
     },
   });
@@ -26,7 +32,9 @@ export default function ArticleDetail({ id }: { id: string }) {
   const article = response?.status === 200 ? response.data.data : null;
   const notFound = response?.status === 404;
   const unpublished =
-    article !== null && article.status.toLowerCase() !== "published";
+    article !== null &&
+    article.status.toLowerCase() !== "published" &&
+    !accessToken;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -113,6 +121,20 @@ export default function ArticleDetail({ id }: { id: string }) {
         {!articleQuery.isPending &&
           !articleQuery.isError &&
           article !== null &&
+          article.status.toLowerCase() !== "published" &&
+          accessToken && (
+            <p
+              role="status"
+              className="mt-6 rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200"
+            >
+              Pré-visualização: este post não está publicado. Apenas usuários
+              autorizados podem visualizar este conteúdo.
+            </p>
+          )}
+
+        {!articleQuery.isPending &&
+          !articleQuery.isError &&
+          article !== null &&
           !unpublished && (
             <article className="mt-10">
               <header>
@@ -159,9 +181,7 @@ export default function ArticleDetail({ id }: { id: string }) {
                 </div>
               )}
 
-              <div className="mt-10 whitespace-pre-wrap break-words text-base leading-8 text-foreground/85">
-                {article.content}
-              </div>
+              <PostContent content={article.content} />
             </article>
           )}
       </main>

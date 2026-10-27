@@ -3,15 +3,16 @@
 import {
   getCategoriesIndexQueryKey,
   getPostsIndexQueryKey,
+  getPostsStoreUrl,
   useCategoriesIndex,
-  usePostsStore,
 } from "@/lib/api/generated";
 import {
   StorePostRequestStatus,
   type StorePostRequest,
 } from "@/lib/api/generated/models";
 import { useAccessToken } from "@/lib/auth/session";
-import { useQueryClient } from "@tanstack/react-query";
+import PostContentEditor from "@/components/dashboard/post-content-editor";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -63,6 +64,25 @@ function getResponseMessage(data: unknown) {
   return messages.length > 0 ? messages.join(" ") : null;
 }
 
+async function createPostWithImage(
+  data: FormData,
+  accessToken: string | null,
+): Promise<{ status: number; data: unknown }> {
+  const response = await fetch(getPostsStoreUrl(), {
+    method: "POST",
+    headers: accessToken
+      ? { Authorization: `Bearer ${accessToken}` }
+      : undefined,
+    body: data,
+  });
+  const body = await response.text();
+
+  return {
+    status: response.status,
+    data: body ? (JSON.parse(body) as unknown) : null,
+  };
+}
+
 export default function PostCreateForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -70,7 +90,7 @@ export default function PostCreateForm() {
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
-  const [coverImage, setCoverImage] = useState("");
+  const [contentText, setContentText] = useState("");
   const [status, setStatus] = useState<StorePostRequest["status"]>(
     StorePostRequestStatus.draft,
   );
@@ -88,10 +108,8 @@ export default function PostCreateForm() {
     },
   });
 
-  const createPost = usePostsStore({
-    fetch: accessToken
-      ? { headers: { Authorization: `Bearer ${accessToken}` } }
-      : undefined,
+  const createPost = useMutation({
+    mutationFn: (data: FormData) => createPostWithImage(data, accessToken),
   });
 
   const categoriesResponse = categoriesQuery.data;
@@ -116,17 +134,28 @@ export default function PostCreateForm() {
       return;
     }
 
-    const post: StorePostRequest = {
-      title: title.trim(),
-      excerpt: excerpt.trim(),
-      content: content.trim(),
-      status,
-      category_ids: categoryIds,
-      ...(coverImage.trim() ? { cover_image: coverImage.trim() } : {}),
-    };
+    if (!contentText.trim()) {
+      toast.error("O conteúdo do post não pode ficar vazio.");
+      return;
+    }
+
+    const post = new FormData(event.currentTarget);
+    post.set("title", title.trim());
+    post.set("excerpt", excerpt.trim());
+    post.set("content", content.trim());
+    post.set("status", status);
+    post.delete("category_ids[]");
+    categoryIds.forEach((categoryId) =>
+      post.append("category_ids[]", categoryId),
+    );
+
+    const coverImage = post.get("cover_image");
+    if (!(coverImage instanceof File) || coverImage.size === 0) {
+      post.delete("cover_image");
+    }
 
     createPost.mutate(
-      { data: post },
+      post,
       {
         onSuccess: (response) => {
           if (response.status !== 201) {
@@ -157,7 +186,7 @@ export default function PostCreateForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-8 max-w-3xl space-y-6 rounded-lg border border-foreground/10 bg-foreground/[0.03] p-6"
+      className="mt-8 space-y-6 rounded-lg border border-foreground/10 bg-foreground/[0.03] p-6"
     >
       <div>
         <label htmlFor="post-title" className="mb-2 block text-sm font-medium">
@@ -170,16 +199,16 @@ export default function PostCreateForm() {
           required
           maxLength={255}
           value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="Título do post"
-          className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-foreground placeholder:text-foreground/45 focus:border-foreground focus:outline-none"
-        />
-      </div>
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="Título do post"
+            className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-foreground placeholder:text-foreground/45 focus:border-foreground focus:outline-none"
+          />
+        </div>
 
-      <div>
-        <label htmlFor="post-excerpt" className="mb-2 block text-sm font-medium">
-          Resumo
-        </label>
+        <div>
+          <label htmlFor="post-excerpt" className="mb-2 block text-sm font-medium">
+            Resumo
+          </label>
         <textarea
           id="post-excerpt"
           name="excerpt"
@@ -193,20 +222,15 @@ export default function PostCreateForm() {
       </div>
 
       <div>
-        <label
-          htmlFor="post-cover-image"
-          className="mb-2 block text-sm font-medium"
-        >
-          URL da imagem de capa <span className="font-normal text-foreground/55">(opcional)</span>
+        <label htmlFor="post-cover-image" className="mb-2 block text-sm font-medium">
+          Imagem de capa{" "}
+          <span className="font-normal text-foreground/55">(opcional)</span>
         </label>
         <input
           id="post-cover-image"
           name="cover_image"
-          type="url"
-          maxLength={255}
-          value={coverImage}
-          onChange={(event) => setCoverImage(event.target.value)}
-          placeholder="https://exemplo.com/imagem.jpg"
+          type="file"
+          accept="image/*"
           className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-foreground placeholder:text-foreground/45 focus:border-foreground focus:outline-none"
         />
       </div>
@@ -215,15 +239,12 @@ export default function PostCreateForm() {
         <label htmlFor="post-content" className="mb-2 block text-sm font-medium">
           Conteúdo
         </label>
-        <textarea
-          id="post-content"
-          name="content"
-          required
-          rows={12}
-          value={content}
-          onChange={(event) => setContent(event.target.value)}
-          placeholder="Escreva o conteúdo do artigo..."
-          className="w-full resize-y rounded-md border border-foreground/20 bg-background px-3 py-2 font-mono text-sm text-foreground placeholder:font-sans placeholder:text-foreground/45 focus:border-foreground focus:outline-none"
+        <PostContentEditor
+          value=""
+          onChange={(html, text) => {
+            setContent(html);
+            setContentText(text);
+          }}
         />
       </div>
 

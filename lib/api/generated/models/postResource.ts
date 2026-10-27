@@ -10,7 +10,8 @@ import type { UserResource } from './userResource';
 
 export interface PostResource {
   id: string;
-  cover_image: string;
+  /** @nullable */
+  cover_image: string | null;
   title: string;
   slug: string;
   excerpt: string;

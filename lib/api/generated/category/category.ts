@@ -9,9 +9,14 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
@@ -126,7 +131,7 @@ export const getCategoriesIndexQueryKey = (params?: CategoriesIndexParams,) => {
     }
 
 
-export const getCategoriesIndexQueryOptions = <TData = Awaited<ReturnType<typeof categoriesIndex>>, TError = AuthenticationExceptionResponse | ValidationExceptionResponse>(params?: CategoriesIndexParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof categoriesIndex>>, TError, TData>, fetch?: RequestInit}
+export const getCategoriesIndexQueryOptions = <TData = Awaited<ReturnType<typeof categoriesIndex>>, TError = AuthenticationExceptionResponse | ValidationExceptionResponse>(params?: CategoriesIndexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof categoriesIndex>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
@@ -141,25 +146,49 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 
 
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof categoriesIndex>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof categoriesIndex>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type CategoriesIndexQueryResult = NonNullable<Awaited<ReturnType<typeof categoriesIndex>>>
 export type CategoriesIndexQueryError = AuthenticationExceptionResponse | ValidationExceptionResponse
 
 
+export function useCategoriesIndex<TData = Awaited<ReturnType<typeof categoriesIndex>>, TError = AuthenticationExceptionResponse | ValidationExceptionResponse>(
+ params: undefined |  CategoriesIndexParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof categoriesIndex>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof categoriesIndex>>,
+          TError,
+          Awaited<ReturnType<typeof categoriesIndex>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCategoriesIndex<TData = Awaited<ReturnType<typeof categoriesIndex>>, TError = AuthenticationExceptionResponse | ValidationExceptionResponse>(
+ params?: CategoriesIndexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof categoriesIndex>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof categoriesIndex>>,
+          TError,
+          Awaited<ReturnType<typeof categoriesIndex>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCategoriesIndex<TData = Awaited<ReturnType<typeof categoriesIndex>>, TError = AuthenticationExceptionResponse | ValidationExceptionResponse>(
+ params?: CategoriesIndexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof categoriesIndex>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Retrieve a paginated list of categories
  */
 
 export function useCategoriesIndex<TData = Awaited<ReturnType<typeof categoriesIndex>>, TError = AuthenticationExceptionResponse | ValidationExceptionResponse>(
- params?: CategoriesIndexParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof categoriesIndex>>, TError, TData>, fetch?: RequestInit}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+ params?: CategoriesIndexParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof categoriesIndex>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getCategoriesIndexQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return withQueryKey(query, queryOptions.queryKey);
 }
@@ -284,13 +313,13 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  */
 export const useCategoriesStore = <TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ValidationExceptionResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof categoriesStore>>, TError,CategoriesStoreMutationVariables, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof categoriesStore>>,
         TError,
         CategoriesStoreMutationVariables,
         TContext
       > => {
-      return useMutation(getCategoriesStoreMutationOptions(options));
+      return useMutation(getCategoriesStoreMutationOptions(options), queryClient);
     }
     export type categoriesShowResponse200 = {
   data: CategoriesShow200
@@ -356,7 +385,7 @@ export const getCategoriesShowQueryKey = (category: string,) => {
     }
 
 
-export const getCategoriesShowQueryOptions = <TData = Awaited<ReturnType<typeof categoriesShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(category: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof categoriesShow>>, TError, TData>, fetch?: RequestInit}
+export const getCategoriesShowQueryOptions = <TData = Awaited<ReturnType<typeof categoriesShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(category: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof categoriesShow>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
@@ -371,25 +400,49 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 
 
 
-   return  { queryKey, queryFn, enabled: category !== null && category !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof categoriesShow>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, enabled: category !== null && category !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof categoriesShow>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type CategoriesShowQueryResult = NonNullable<Awaited<ReturnType<typeof categoriesShow>>>
 export type CategoriesShowQueryError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse
 
 
+export function useCategoriesShow<TData = Awaited<ReturnType<typeof categoriesShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(
+ category: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof categoriesShow>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof categoriesShow>>,
+          TError,
+          Awaited<ReturnType<typeof categoriesShow>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCategoriesShow<TData = Awaited<ReturnType<typeof categoriesShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(
+ category: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof categoriesShow>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof categoriesShow>>,
+          TError,
+          Awaited<ReturnType<typeof categoriesShow>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCategoriesShow<TData = Awaited<ReturnType<typeof categoriesShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(
+ category: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof categoriesShow>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Display the specified category
  */
 
 export function useCategoriesShow<TData = Awaited<ReturnType<typeof categoriesShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(
- category: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof categoriesShow>>, TError, TData>, fetch?: RequestInit}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+ category: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof categoriesShow>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getCategoriesShowQueryOptions(category,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return withQueryKey(query, queryOptions.queryKey);
 }
@@ -525,13 +578,13 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  */
 export const useCategoriesUpdate = <TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ModelNotFoundExceptionResponse | ValidationExceptionResponse | CategoriesUpdate500,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof categoriesUpdate>>, TError,CategoriesUpdateMutationVariables, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof categoriesUpdate>>,
         TError,
         CategoriesUpdateMutationVariables,
         TContext
       > => {
-      return useMutation(getCategoriesUpdateMutationOptions(options));
+      return useMutation(getCategoriesUpdateMutationOptions(options), queryClient);
     }
     export type categoriesDestroyResponse200 = {
   data: CategoriesDestroy200
@@ -641,13 +694,13 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  */
 export const useCategoriesDestroy = <TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | ModelNotFoundExceptionResponse | CategoriesDestroy500,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof categoriesDestroy>>, TError,CategoriesDestroyMutationVariables, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof categoriesDestroy>>,
         TError,
         CategoriesDestroyMutationVariables,
         TContext
       > => {
-      return useMutation(getCategoriesDestroyMutationOptions(options));
+      return useMutation(getCategoriesDestroyMutationOptions(options), queryClient);
     }
     export type categoriesRestoreResponse200 = {
   data: CategoriesRestore200
@@ -750,11 +803,11 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  */
 export const useCategoriesRestore = <TError = AuthenticationExceptionResponse | AuthorizationExceptionResponse | CategoriesRestore500,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof categoriesRestore>>, TError,CategoriesRestoreMutationVariables, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof categoriesRestore>>,
         TError,
         CategoriesRestoreMutationVariables,
         TContext
       > => {
-      return useMutation(getCategoriesRestoreMutationOptions(options));
+      return useMutation(getCategoriesRestoreMutationOptions(options), queryClient);
     }

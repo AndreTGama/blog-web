@@ -11,6 +11,7 @@ import {
 import type { PostResource } from "@/lib/api/generated/models";
 import type { UpdatePostRequest } from "@/lib/api/generated/models";
 import { useAccessToken } from "@/lib/auth/session";
+import PostContentEditor from "@/components/dashboard/post-content-editor";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -84,6 +85,8 @@ function PostEditFields({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [categoryIds, setCategoryIds] = useState<string[] | null>(null);
+  const [content, setContent] = useState(post.content);
+  const [contentText, setContentText] = useState(post.content);
   const categoryParams = { limit: 100, page: 1 } as const;
   const categoriesQuery = useCategoriesIndex(categoryParams, {
     fetch: { headers: { Authorization: `Bearer ${accessToken}` } },
@@ -119,14 +122,18 @@ function PostEditFields({
     const formData = new FormData(event.currentTarget);
     const title = String(formData.get("title") ?? "").trim();
     const excerpt = String(formData.get("excerpt") ?? "").trim();
-    const content = String(formData.get("content") ?? "").trim();
     const coverImage = String(formData.get("cover_image") ?? "").trim();
     const status = String(formData.get("status")) as PostStatus;
+
+    if (!contentText.trim()) {
+      toast.error("O conteúdo do post não pode ficar vazio.");
+      return;
+    }
 
     const update: UpdatePostRequest = {
       title,
       excerpt,
-      content,
+      content: content.trim(),
       status,
       cover_image: coverImage || null,
       ...(categoryIds !== null ? { category_ids: categoryIds } : {}),
@@ -219,13 +226,12 @@ function PostEditFields({
         <label htmlFor="post-content" className="mb-2 block text-sm font-medium">
           Conteúdo
         </label>
-        <textarea
-          id="post-content"
-          name="content"
-          required
-          rows={12}
-          defaultValue={post.content}
-          className="w-full resize-y rounded-md border border-foreground/20 bg-background px-3 py-2 font-mono text-sm text-foreground focus:border-foreground focus:outline-none"
+        <PostContentEditor
+          value={post.content}
+          onChange={(html, text) => {
+            setContent(html);
+            setContentText(text);
+          }}
         />
       </div>
 

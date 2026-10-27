@@ -313,6 +313,7 @@ export default function PostsPage() {
                     <RowActions
                       label={post.title}
                       editHref={`/dashboard/posts/${encodeURIComponent(post.id)}/edit`}
+                      previewHref={`/artigos/${encodeURIComponent(post.id)}`}
                       onDelete={() => handleDelete(post)}
                       deletePending={
                         deletePost.isPending &&

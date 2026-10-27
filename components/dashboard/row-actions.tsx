@@ -3,6 +3,7 @@ import Link from "next/link";
 type RowActionsProps = {
   label: string;
   editHref: string;
+  previewHref?: string;
   onDelete: () => void;
   deletePending: boolean;
   deleteLabel: string;
@@ -11,6 +12,7 @@ type RowActionsProps = {
 export default function RowActions({
   label,
   editHref,
+  previewHref,
   onDelete,
   deletePending,
   deleteLabel,
@@ -40,6 +42,16 @@ export default function RowActions({
         >
           Editar
         </Link>
+        {previewHref && (
+          <Link
+            href={previewHref}
+            target="_blank"
+            rel="noreferrer"
+            className="block rounded px-3 py-2 text-sm transition-colors hover:bg-foreground/5"
+          >
+            Visualizar
+          </Link>
+        )}
         <button
           type="button"
           onClick={onDelete}

@@ -9,9 +9,14 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
@@ -153,13 +158,13 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  */
 export const useAuthLogin = <TError = ValidationExceptionResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authLogin>>, TError,AuthLoginMutationVariables, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof authLogin>>,
         TError,
         AuthLoginMutationVariables,
         TContext
       > => {
-      return useMutation(getAuthLoginMutationOptions(options));
+      return useMutation(getAuthLoginMutationOptions(options), queryClient);
     }
     export type authLogoutResponse200 = {
   data: AuthLogout200
@@ -261,13 +266,13 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  */
 export const useAuthLogout = <TError = AuthenticationExceptionResponse | AuthLogout500,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authLogout>>, TError,void, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof authLogout>>,
         TError,
         void,
         TContext
       > => {
-      return useMutation(getAuthLogoutMutationOptions(options));
+      return useMutation(getAuthLogoutMutationOptions(options), queryClient);
     }
     export type authUserResponse200 = {
   data: AuthUser200
@@ -337,7 +342,7 @@ export const getAuthUserQueryKey = () => {
     }
 
 
-export const getAuthUserQueryOptions = <TData = Awaited<ReturnType<typeof authUser>>, TError = AuthenticationExceptionResponse | AuthUser500>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof authUser>>, TError, TData>, fetch?: RequestInit}
+export const getAuthUserQueryOptions = <TData = Awaited<ReturnType<typeof authUser>>, TError = AuthenticationExceptionResponse | AuthUser500>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authUser>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
@@ -352,25 +357,49 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 
 
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof authUser>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof authUser>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AuthUserQueryResult = NonNullable<Awaited<ReturnType<typeof authUser>>>
 export type AuthUserQueryError = AuthenticationExceptionResponse | AuthUser500
 
 
+export function useAuthUser<TData = Awaited<ReturnType<typeof authUser>>, TError = AuthenticationExceptionResponse | AuthUser500>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authUser>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof authUser>>,
+          TError,
+          Awaited<ReturnType<typeof authUser>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthUser<TData = Awaited<ReturnType<typeof authUser>>, TError = AuthenticationExceptionResponse | AuthUser500>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authUser>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof authUser>>,
+          TError,
+          Awaited<ReturnType<typeof authUser>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthUser<TData = Awaited<ReturnType<typeof authUser>>, TError = AuthenticationExceptionResponse | AuthUser500>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authUser>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Retrieve the authenticated user's information
  */
 
 export function useAuthUser<TData = Awaited<ReturnType<typeof authUser>>, TError = AuthenticationExceptionResponse | AuthUser500>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof authUser>>, TError, TData>, fetch?: RequestInit}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authUser>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getAuthUserQueryOptions(options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return withQueryKey(query, queryOptions.queryKey);
 }
