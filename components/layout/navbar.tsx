@@ -7,7 +7,7 @@ export default function Navbar() {
   return (
     <nav
       aria-label="Navegação principal"
-      className="border-b border-foreground/10"
+      className="border-b border-foreground/10 bg-background fixed top-0 left-0 right-0 z-50"
     >
       <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
         <Link

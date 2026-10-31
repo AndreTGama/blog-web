@@ -10,8 +10,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import ThemeToggle from "@/components/ui/theme-toggle";
-import Navbar from "../nav/navbar";
+import Navbar from "../layout/navbar";
 import HeaderMain from "../headers/header-main";
+import Footer from "../layout/footer";
 
 const CONTENT_LIMIT = 12;
 const API_PAGE_SIZE = 100;
@@ -448,26 +449,7 @@ export default function PublicHome() {
           )}
         </section>
       </main>
-
-      <footer className="border-t border-foreground/10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-8 sm:px-8">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/50">
-            Mapa do site
-          </h2>
-          <nav aria-label="Mapa do site">
-            <ul className="flex gap-5 text-sm text-foreground/65">
-              <li>
-                <Link
-                  href="/"
-                  className="transition-colors hover:text-foreground"
-                >
-                  Início
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
