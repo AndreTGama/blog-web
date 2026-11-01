@@ -8,7 +8,6 @@ import { useRouter } from "@/i18n/navigation";
 import { useState, type FormEvent } from "react";
 import { toast } from "react-toastify";
 import Input from "../ui/input";
-import ThemeToggle from "../ui/theme-toggle";
 
 export default function Login() {
   const t = useTranslations("login");
