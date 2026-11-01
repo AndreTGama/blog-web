@@ -1,12 +1,14 @@
 "use client";
 
+import { useEffect, useMemo } from "react";
 import { getPostsShowQueryKey, usePostsShow } from "@/lib/api/generated";
 import PostContent from "@/components/home/post-content";
 import { useAccessToken } from "@/lib/auth/session";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import ThemeToggle from "@/components/ui/theme-toggle";
+import { useArticleLanguage } from "@/components/ui/article-language-context";
+import type { Locale } from "@/i18n/constants";
 import { formatDate } from "@/lib/utils/format";
 
 
@@ -14,6 +16,7 @@ export default function ArticleDetail({ slug }: { slug: string }) {
   const locale = useLocale();
   const t = useTranslations("article");
   const common = useTranslations("dashboard");
+  const { setArticleSlugs } = useArticleLanguage();
   const accessToken = useAccessToken();
   const postIdentifier = encodeURIComponent(slug);
   const articleQuery = usePostsShow(postIdentifier, {
@@ -29,6 +32,23 @@ export default function ArticleDetail({ slug }: { slug: string }) {
   const response = articleQuery.data;
   const responseArticle = response?.status === 200 ? response.data.data : null;
   const article = responseArticle?.locale === locale ? responseArticle : null;
+  const articleSlugs = useMemo(() => {
+    if (!article) return null;
+
+    const slugs: Partial<Record<Locale, string>> = {
+      [article.locale]: article.slug,
+    };
+    article.translations?.forEach((translation) => {
+      slugs[translation.locale] = translation.slug;
+    });
+    return slugs;
+  }, [article]);
+
+  useEffect(() => {
+    setArticleSlugs(articleSlugs);
+    return () => setArticleSlugs(null);
+  }, [articleSlugs, setArticleSlugs]);
+
   const notFound =
     response?.status === 404 ||
     (responseArticle !== null && article === null);
@@ -43,23 +63,7 @@ export default function ArticleDetail({ slug }: { slug: string }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <nav aria-label={t("navigation")} className="border-b border-foreground/10">
-        <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
-          <Link
-            href="/"
-            aria-label={t("home")}
-            className="inline-flex items-center gap-3"
-          >
-            <span className="flex size-10 items-center justify-center rounded-xl bg-foreground text-sm font-bold text-background">
-              &lt;/&gt;
-            </span>
-            <span className="font-semibold tracking-tight">{t("brand")}</span>
-          </Link>
-          <ThemeToggle />
-        </div>
-      </nav>
-
-      <main className="mx-auto min-h-[70vh] max-w-7xl px-5 py-10 sm:px-8 sm:py-16">
+      <main className="mx-auto min-h-[70vh] max-w-7xl px-5 pt-28 pb-10 sm:px-8 sm:pt-32 sm:pb-16">
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-sm text-foreground/65 transition-colors hover:text-foreground"
@@ -67,26 +71,6 @@ export default function ArticleDetail({ slug }: { slug: string }) {
           <span aria-hidden="true">←</span>
           {t("back")}
         </Link>
-        {article?.translations && article.translations.length > 0 && (
-          <nav
-            aria-label={t("switchLanguage")}
-            className="mt-4 flex gap-2 text-sm"
-          >
-            {article.translations.map((translation) => (
-              <Link
-                key={translation.locale}
-                href={`/artigos/${translation.slug}`}
-                locale={translation.locale}
-                className="rounded-full border border-foreground/15 px-3 py-1 text-foreground/70 transition-colors hover:bg-foreground/5 hover:text-foreground"
-              >
-                {translation.locale === "en"
-                  ? t("english")
-                  : t("portuguese")}
-              </Link>
-            ))}
-          </nav>
-        )}
-
         {articleQuery.isPending && (
           <div role="status" className="mt-10 animate-pulse space-y-5">
             <span className="block h-4 w-32 rounded bg-foreground/10" />

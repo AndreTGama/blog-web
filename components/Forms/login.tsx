@@ -8,6 +8,7 @@ import { useRouter } from "@/i18n/navigation";
 import { useState, type FormEvent } from "react";
 import { toast } from "react-toastify";
 import Input from "../ui/input";
+import ThemeToggle from "../ui/theme-toggle";
 
 export default function Login() {
   const t = useTranslations("login");
@@ -56,8 +57,9 @@ export default function Login() {
 
   return (
     <>
-      <div className="mb-6 text-center">
-        <h1 className="text-2xl font-semibold">{t("title")}</h1>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold text-foreground">{t("title")}</h1>
+        <ThemeToggle />
       </div>
       <form onSubmit={handleSubmit}>
         <div className="mb-6">

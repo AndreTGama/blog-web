@@ -1,12 +1,12 @@
 {
   "metadata": {
-    "title": "Blog de tecnologia | Artigos e padrões de projeto",
+    "title": "Meu Blog | Artigos e padrões de projeto",
     "description": "Artigos de tecnologia, arquitetura e padrões de projeto com exemplos práticos."
   },
   "navigation": {
     "label": "Navegação principal",
-    "home": "Blog de tecnologia - início",
-    "brand": "Blog de tecnologia",
+    "home": "Meu Blog - início",
+    "brand": "Meu Blog",
     "content": "Conteúdos",
     "switchLanguage": "Mudar idioma",
     "portuguese": "Português",
@@ -31,11 +31,12 @@
     "heading": "Artigos"
   },
   "footer": {
-    "title": "Conheça o blog",
-    "authorAlt": "Ilustração do rosto do autor do blog de tecnologia",
-    "description": "Conteúdos sobre arquitetura, padrões de projeto e desenvolvimento, com exemplos práticos para levar da leitura ao código.",
+    "title": "Um pouco sobre mim",
+    "authorAlt": "Ilustração do rosto do autor do Meu Blog",
+    "description": "Um espaço para compartilhar conhecimentos, experiências e descobertas sobre tecnologia, engenharia de software e tudo que desperta minha curiosidade.",
     "social": "Redes sociais",
-    "linkedin": "LinkedIn (abre em uma nova aba)"
+    "linkedin": "LinkedIn (abre em uma nova aba)",
+    "github": "GitHub (abre em uma nova aba)"
   },
   "categories": {
     "filterLabel": "Filtros de conteúdo",
@@ -69,8 +70,8 @@
   },
   "article": {
     "navigation": "Navegação principal",
-    "home": "Blog de tecnologia - início",
-    "brand": "Blog de tecnologia",
+    "home": "Meu Blog - início",
+    "brand": "Meu Blog",
     "back": "Voltar para os artigos",
     "switchLanguage": "Versões deste artigo",
     "english": "English",

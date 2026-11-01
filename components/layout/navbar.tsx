@@ -1,16 +1,15 @@
 import Image from "next/image";
 import { Suspense } from "react";
 import { hasLocale } from "next-intl";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import LanguageSwitcher from "@/components/ui/language-switcher";
 import ThemeToggle from "@/components/ui/theme-toggle";
-import { locales } from "@/i18n/constants";
+import { locales, type Locale } from "@/i18n/constants";
 
-export default async function Navbar() {
-  const locale = await getLocale();
+export default async function Navbar({ locale }: { locale: Locale }) {
   if (!hasLocale(locales, locale)) notFound();
-  const t = await getTranslations("navigation");
+  const t = await getTranslations({ locale, namespace: "navigation" });
   const localePrefix = locale === "pt" ? "" : `/${locale}`;
 
   return (

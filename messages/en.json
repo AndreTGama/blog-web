@@ -1,12 +1,12 @@
 {
   "metadata": {
-    "title": "Technology blog | Articles and design patterns",
+    "title": "My Blog | Articles and design patterns",
     "description": "Technology, architecture, and design pattern articles with practical examples."
   },
   "navigation": {
     "label": "Main navigation",
-    "home": "Technology blog - home",
-    "brand": "Technology blog",
+    "home": "My Blog - home",
+    "brand": "My Blog",
     "content": "Articles",
     "switchLanguage": "Change language",
     "portuguese": "Portuguese",
@@ -31,11 +31,12 @@
     "heading": "Articles"
   },
   "footer": {
-    "title": "About this blog",
-    "authorAlt": "Illustration of the technology blog author's face",
-    "description": "Content about architecture, design patterns, and software development, with practical examples you can take from reading to code.",
+    "title": "A little about me",
+    "authorAlt": "Illustration of the My Blog author's face",
+    "description": "A space to share knowledge, experiences, and discoveries about technology, software engineering, and everything that sparks my curiosity.",
     "social": "Social media",
-    "linkedin": "LinkedIn (opens in a new tab)"
+    "linkedin": "LinkedIn (opens in a new tab)",
+    "github": "GitHub (opens in a new tab)"
   },
   "categories": {
     "filterLabel": "Content filters",
@@ -69,8 +70,8 @@
   },
   "article": {
     "navigation": "Main navigation",
-    "home": "Technology blog - home",
-    "brand": "Technology blog",
+    "home": "My Blog - home",
+    "brand": "My Blog",
     "back": "Back to articles",
     "switchLanguage": "Article versions",
     "english": "English",

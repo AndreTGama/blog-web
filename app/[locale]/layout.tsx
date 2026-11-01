@@ -4,12 +4,10 @@ import "react-toastify/dist/ReactToastify.css";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 
 import QueryProvider from "@/components/providers/query-provider";
-import Navbar from "@/components/layout/navbar";
-import Footer from "@/components/layout/footer";
 import { locales } from "@/i18n/constants";
 
 const geistSans = Geist({
@@ -55,7 +53,7 @@ export default async function LocaleLayout({
   if (!hasLocale(locales, locale)) notFound();
 
   setRequestLocale(locale);
-  const messages = await getMessages();
+  const messages = (await import(`../../messages/${locale}.json`)).default;
 
   return (
     <html
@@ -65,9 +63,7 @@ export default async function LocaleLayout({
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>
-            <Navbar />
             {children}
-            <Footer />
           </QueryProvider>
         </NextIntlClientProvider>
       </body>

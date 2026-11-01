@@ -6,7 +6,8 @@ import {
   useAuthUser,
 } from "@/lib/api/generated";
 import { clearAccessToken, useAccessToken } from "@/lib/auth/session";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import LanguageSwitcher from "@/components/ui/language-switcher";
 import ThemeToggle from "@/components/ui/theme-toggle";
 import { usePathname, useRouter, Link } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
@@ -26,6 +27,8 @@ function LoadingScreen({ message }: { message: string }) {
 
 export default function DashboardShell({ children }: DashboardShellProps) {
   const t = useTranslations("dashboard");
+  const navigationT = useTranslations("navigation");
+  const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const accessToken = useAccessToken();
@@ -285,29 +288,39 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       </aside>
 
       <div className="min-w-0 flex-1">
-        <header className="flex h-14 items-center border-b border-foreground/10 px-4 md:hidden">
-          <button
-            type="button"
-            aria-label={t("openMenu")}
-            aria-expanded={mobileMenuOpen}
-            onClick={() => setMobileMenuOpen(true)}
-            className="rounded-md p-2 hover:bg-foreground/5"
-          >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-              className="size-5"
+        <header className="flex h-14 items-center justify-between border-b border-foreground/10 px-4 md:px-10">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              aria-label={t("openMenu")}
+              aria-expanded={mobileMenuOpen}
+              onClick={() => setMobileMenuOpen(true)}
+              className="rounded-md p-2 hover:bg-foreground/5 md:hidden"
             >
-              <path
-                d="M4 6h16M4 12h16M4 18h16"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeWidth="1.8"
-              />
-            </svg>
-          </button>
-          <span className="ml-3 font-medium">{t("brand")}</span>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="size-5"
+              >
+                <path
+                  d="M4 6h16M4 12h16M4 18h16"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeWidth="1.8"
+                />
+              </svg>
+            </button>
+            <span className="font-medium md:hidden">{t("brand")}</span>
+          </div>
+          <LanguageSwitcher
+            locale={locale}
+            label={navigationT("switchLanguage")}
+            labels={{
+              pt: navigationT("portuguese"),
+              en: navigationT("english"),
+            }}
+          />
         </header>
         <main className="min-h-[calc(100vh-3.5rem)] p-6 md:min-h-screen md:p-10">
           {children}
