@@ -7,6 +7,7 @@ import { CategoryProps } from "@/types/Category";
 import { PostProps, PostsListProps } from "@/types/Post";
 
 import PostsNotFound from "./post-not-found";
+import PostsPagination from "./posts-pagination";
 import { getPostsIndexQueryKey, usePostsIndex } from "@/lib/api/generated";
 import { isRecord } from "@/lib/utils/is-record";
 import { readItems } from "@/lib/utils/read-items";
@@ -182,30 +183,11 @@ export default function PostsList({
       )}
 
       {!postsQuery.isPending && !postsError && (
-        <nav
-          aria-label="Paginação dos conteúdos"
-          className="mt-8 flex flex-wrap items-center justify-center gap-2"
-        >
-          <button
-            type="button"
-            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-            disabled={currentPage <= 1}
-            className="rounded-full border border-foreground/15 px-4 py-2 text-sm transition-colors hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Anterior
-          </button>
-          <span className="px-2 text-sm text-foreground/60">
-            {currentPage} / {pageCount}
-          </span>
-          <button
-            type="button"
-            onClick={() => onPageChange(Math.min(pageCount, currentPage + 1))}
-            disabled={currentPage >= pageCount}
-            className="rounded-full border border-foreground/15 px-4 py-2 text-sm transition-colors hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Próxima
-          </button>
-        </nav>
+        <PostsPagination
+          currentPage={currentPage}
+          pageCount={pageCount}
+          onPageChange={onPageChange}
+        />
       )}
     </section>
   );

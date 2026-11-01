@@ -50,12 +50,11 @@ export default function PostCard({
             ))}
           </div>
           <h3 className="mt-4 text-lg font-semibold leading-snug tracking-tight">
-            <Link
-              href={`/artigos/${encodeURIComponent(post.id)}`}
+            <span
               className="transition-colors hover:text-foreground/70 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground"
             >
               {post.title}
-            </Link>
+            </span>
           </h3>
           <p className="mt-2 line-clamp-3 flex-1 text-sm leading-6 text-foreground/65">
             {post.excerpt}
