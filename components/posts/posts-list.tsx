@@ -1,34 +1,20 @@
 "use client";
 
-import { getPostsIndexQueryKey, usePostsIndex } from "@/lib/api/generated";
-import { CategoryProps } from "@/types/Category";
-import { PostProps, PostsListProps } from "@/types/Post";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
 
+import { CategoryProps } from "@/types/Category";
+import { PostProps, PostsListProps } from "@/types/Post";
+
+import PostsNotFound from "./post-not-found";
+import { getPostsIndexQueryKey, usePostsIndex } from "@/lib/api/generated";
+import { formatDate } from "@/lib/utils/format";
+import { isRecord } from "@/lib/utils/is-record";
+import { readItems } from "@/lib/utils/read-items";
+
 const CONTENT_LIMIT = 12;
 const API_PAGE_SIZE = 100;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function readItems<T>(
-  items: unknown,
-  parseItem: (item: unknown) => T | null,
-): T[] | null {
-  if (!Array.isArray(items)) return null;
-
-  const result: T[] = [];
-  for (const item of items) {
-    const parsed = parseItem(item);
-    if (parsed === null) return null;
-    result.push(parsed);
-  }
-
-  return result;
-}
 
 function parseCategory(item: unknown): CategoryProps | null {
   if (
@@ -70,40 +56,13 @@ function parsePost(item: unknown): PostProps | null {
     title: item.title,
     slug: item.slug,
     excerpt: item.excerpt,
+    content: item.content,
     status: item.status,
     views: item.views,
     cover_image: item.cover_image,
     published_at: item.published_at,
     categories,
   };
-}
-
-function formatDate(dateValue: string | null | undefined) {
-  if (!dateValue) return "Artigo";
-  const date = new Date(dateValue);
-  return Number.isNaN(date.getTime())
-    ? "Artigo"
-    : new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" }).format(date);
-}
-
-function PostsError({ onRetry }: { onRetry: () => void }) {
-  return (
-    <div className="rounded-2xl border border-foreground/10 bg-background p-8 text-center">
-      <h2 className="text-lg font-semibold">
-        Não foi possível carregar os artigos
-      </h2>
-      <p className="mt-2 text-sm text-foreground/65">
-        Verifique se a API está disponível e tente novamente.
-      </p>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="mt-5 rounded-full border border-foreground/20 px-4 py-2 text-sm font-medium transition-colors hover:bg-foreground/5"
-      >
-        Tentar novamente
-      </button>
-    </div>
-  );
 }
 
 export default function PostsList({
@@ -198,7 +157,7 @@ export default function PostsList({
 
       {postsError && (
         <div className="pt-6">
-          <PostsError onRetry={() => void postsQuery.refetch()} />
+          <PostsNotFound onRetry={() => void postsQuery.refetch()} />
         </div>
       )}
 
