@@ -1,5 +1,6 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from "@tiptap/react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 type CodeTab = {
@@ -46,6 +47,7 @@ function readTabsFromHtml(element: HTMLElement): CodeTab[] {
 }
 
 function CodeTabsNodeView({ node, updateAttributes }: NodeViewProps) {
+  const t = useTranslations("editor");
   const tabs = normalizeTabs(node.attrs.tabs);
   const [activeIndex, setActiveIndex] = useState(0);
   const [newLanguage, setNewLanguage] = useState("");
@@ -82,11 +84,11 @@ function CodeTabsNodeView({ node, updateAttributes }: NodeViewProps) {
   return (
     <NodeViewWrapper
       as="section"
-      aria-label="Exemplos de código por linguagem"
+      aria-label={t("codeExamples")}
       className="my-4 overflow-hidden rounded-md border border-foreground/20 bg-background"
     >
       <div className="flex flex-wrap items-center gap-2 border-b border-foreground/10 bg-foreground/[0.04] p-2">
-        <div aria-label="Abas de linguagem" className="flex flex-wrap gap-1" role="tablist">
+        <div aria-label={t("languageTabs")} className="flex flex-wrap gap-1" role="tablist">
           {tabs.map((tab, index) => (
             <button
               key={`${index}-${tab.language}`}
@@ -100,13 +102,13 @@ function CodeTabsNodeView({ node, updateAttributes }: NodeViewProps) {
                   : "text-foreground/65 hover:bg-foreground/10"
               }`}
             >
-              {tab.language || `Aba ${index + 1}`}
+              {tab.language || t("tabNumber", { index: index + 1 })}
             </button>
           ))}
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <input
-            aria-label="Nome da nova linguagem"
+            aria-label={t("newLanguage")}
             value={newLanguage}
             onChange={(event) => setNewLanguage(event.target.value)}
             onKeyDown={(event) => {
@@ -115,7 +117,7 @@ function CodeTabsNodeView({ node, updateAttributes }: NodeViewProps) {
                 addTab();
               }
             }}
-            placeholder="Nova linguagem"
+            placeholder={t("newLanguage")}
             className="w-32 rounded border border-foreground/20 bg-background px-2 py-1.5 text-sm"
           />
           <button
@@ -130,16 +132,16 @@ function CodeTabsNodeView({ node, updateAttributes }: NodeViewProps) {
             }
             className="rounded border border-foreground/20 px-2.5 py-1.5 text-sm hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Adicionar aba
+            {t("addTab")}
           </button>
         </div>
       </div>
       {activeTab ? (
         <div className="space-y-3 p-3">
           <label className="block text-sm font-medium">
-            Nome da aba
+            {t("tabName")}
             <input
-              aria-label="Nome da aba selecionada"
+              aria-label={t("selectedTabName")}
               value={activeTab.language}
               onChange={(event) =>
                 updateTab(activeIndex, { language: event.target.value })
@@ -148,16 +150,20 @@ function CodeTabsNodeView({ node, updateAttributes }: NodeViewProps) {
             />
           </label>
           <label className="block text-sm font-medium">
-            Código
+            {t("code")}
             <textarea
-              aria-label={`Código ${activeTab.language || "da aba selecionada"}`}
+              aria-label={t("codeTabLabel", {
+                language: activeTab.language || t("selectedTab"),
+              })}
               rows={8}
               spellCheck={false}
               value={activeTab.code}
               onChange={(event) =>
                 updateTab(activeIndex, { code: event.target.value })
               }
-              placeholder={`Cole o exemplo de ${activeTab.language || "código"} aqui`}
+              placeholder={t("codeTabPlaceholder", {
+                language: activeTab.language || t("code").toLowerCase(),
+              })}
               className="mt-1 w-full resize-y rounded border border-foreground/20 bg-background px-3 py-2 font-mono text-sm leading-6"
             />
           </label>
@@ -166,12 +172,12 @@ function CodeTabsNodeView({ node, updateAttributes }: NodeViewProps) {
             onClick={() => removeTab(activeIndex)}
             className="text-sm text-red-700 underline underline-offset-2 dark:text-red-300"
           >
-            Remover aba {activeTab.language}
+            {t("removeTab", { language: activeTab.language })}
           </button>
         </div>
       ) : (
         <p className="p-3 text-sm text-foreground/60">
-          Adicione uma linguagem para criar a primeira aba.
+          {t("firstTabPrompt")}
         </p>
       )}
     </NodeViewWrapper>

@@ -2,17 +2,20 @@ import Image from "next/image";
 import Login from "@/components/forms/login";
 import Card from "@/components/cards/card";
 
-export default function page() {
+export default function LoginPage() {
   return (
     <main>
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="w-1/2 h-screen hidden lg:block relative">
+        <div className="relative hidden h-screen w-1/2 lg:block">
           <Image
-            src="https://img.freepik.com/fotos-premium/imagen-fondo_910766-187.jpg?w=826"
-            alt="Placeholder Image"
-            className="object-cover w-full h-full"
+            src="/img/login.png"
+            alt=""
+            className="object-cover"
             fill
-            unoptimized
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-black/45"
           />
         </div>
         <div className="lg:p-36 md:p-52 sm:20 p-8 w-full lg:w-1/2">

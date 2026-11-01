@@ -10,15 +10,16 @@ import { TextAlign } from "@tiptap/extension-text-align";
 import { TextStyleKit } from "@tiptap/extension-text-style";
 import { StarterKit } from "@tiptap/starter-kit";
 import { EditorContent, useEditor } from "@tiptap/react";
+import { useTranslations } from "next-intl";
 import { toast } from "react-toastify";
 
 const toolbarButtonClass =
   "rounded border border-foreground/15 px-2.5 py-1.5 text-sm hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-40";
 const colorPalette = [
-  { label: "Amarelo", value: "#fff59d" },
-  { label: "Verde", value: "#c8e6c9" },
-  { label: "Azul", value: "#bbdefb" },
-  { label: "Rosa", value: "#f8bbd0" },
+  { label: "yellow", value: "#fff59d" },
+  { label: "green", value: "#c8e6c9" },
+  { label: "blue", value: "#bbdefb" },
+  { label: "pink", value: "#f8bbd0" },
 ];
 const fontSizes = ["12px", "14px", "16px", "18px", "24px", "32px"];
 
@@ -40,6 +41,7 @@ export default function PostContentEditor({
   value: string;
   onChange: (html: string, text: string) => void;
 }) {
+  const t = useTranslations("editor");
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -61,7 +63,7 @@ export default function PostContentEditor({
     editorProps: {
       attributes: {
         id: "post-content",
-        "aria-label": "Conteúdo do post",
+        "aria-label": t("ariaLabel"),
         "aria-multiline": "true",
         class:
           "min-h-64 px-3 py-3 text-sm leading-7 outline-none [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-foreground/25 [&_blockquote]:pl-4 [&_h2]:my-4 [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:my-3 [&_h3]:text-xl [&_h3]:font-semibold [&_img]:my-4 [&_img]:h-auto [&_img]:max-w-full [&_li]:ml-5 [&_ol]:my-3 [&_ol]:list-decimal [&_p]:my-3 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-foreground/5 [&_pre]:p-3 [&_ul]:my-3 [&_ul]:list-disc",
@@ -72,13 +74,13 @@ export default function PostContentEditor({
   return (
     <div className="overflow-hidden rounded-md border border-foreground/20 bg-background focus-within:border-foreground">
       <div
-        aria-label="Formatação do conteúdo"
+        aria-label={t("toolbar")}
         className="flex flex-wrap gap-2 border-b border-foreground/10 p-2"
         role="toolbar"
       >
         <button
           type="button"
-          aria-label="Negrito"
+          aria-label={t("bold")}
           aria-pressed={editor?.isActive("bold") ?? false}
           className={`${toolbarButtonClass} font-bold`}
           disabled={!editor?.can().chain().focus().toggleBold().run()}
@@ -88,7 +90,7 @@ export default function PostContentEditor({
         </button>
         <button
           type="button"
-          aria-label="Itálico"
+          aria-label={t("italic")}
           aria-pressed={editor?.isActive("italic") ?? false}
           className={`${toolbarButtonClass} italic`}
           disabled={!editor?.can().chain().focus().toggleItalic().run()}
@@ -98,7 +100,7 @@ export default function PostContentEditor({
         </button>
         <button
           type="button"
-          aria-label="Tachado"
+          aria-label={t("strike")}
           aria-pressed={editor?.isActive("strike") ?? false}
           className={`${toolbarButtonClass} line-through`}
           disabled={!editor?.can().chain().focus().toggleStrike().run()}
@@ -108,7 +110,7 @@ export default function PostContentEditor({
         </button>
         <button
           type="button"
-          aria-label="Sublinhado"
+          aria-label={t("underline")}
           aria-pressed={editor?.isActive("underline") ?? false}
           className={`${toolbarButtonClass} underline`}
           disabled={!editor?.can().chain().focus().toggleUnderline().run()}
@@ -117,9 +119,9 @@ export default function PostContentEditor({
           U
         </button>
         <label className={`${toolbarButtonClass} flex items-center gap-2`}>
-          Cor do texto
+          {t("textColor")}
           <input
-            aria-label="Cor do texto"
+            aria-label={t("textColor")}
             type="color"
             defaultValue="#222222"
             className="size-5 cursor-pointer border-0 bg-transparent p-0"
@@ -129,9 +131,9 @@ export default function PostContentEditor({
           />
         </label>
         <label className={`${toolbarButtonClass} flex items-center gap-2`}>
-          Fundo do texto
+          {t("backgroundColor")}
           <input
-            aria-label="Cor de fundo do texto"
+            aria-label={t("backgroundColor")}
             type="color"
             defaultValue="#fff59d"
             className="size-5 cursor-pointer border-0 bg-transparent p-0"
@@ -148,8 +150,10 @@ export default function PostContentEditor({
           <button
             key={color.value}
             type="button"
-            aria-label={`Realçar texto em ${color.label.toLowerCase()}`}
-            title={`Realçar texto em ${color.label.toLowerCase()}`}
+            aria-label={t("highlight", {
+              color: t(color.label).toLowerCase(),
+            })}
+            title={t("highlight", { color: t(color.label).toLowerCase() })}
             className={`${toolbarButtonClass} size-9`}
             style={{ backgroundColor: color.value }}
             onClick={() =>
@@ -160,11 +164,11 @@ export default function PostContentEditor({
           </button>
         ))}
         <label className="sr-only" htmlFor="post-editor-font-size">
-          Tamanho da fonte
+          {t("fontSize")}
         </label>
         <select
           id="post-editor-font-size"
-          aria-label="Tamanho da fonte"
+          aria-label={t("fontSize")}
           defaultValue=""
           className={`${toolbarButtonClass} bg-background`}
           onChange={(event) => {
@@ -175,7 +179,7 @@ export default function PostContentEditor({
             }
           }}
         >
-          <option value="">Tamanho</option>
+          <option value="">{t("size")}</option>
           {fontSizes.map((size) => (
             <option key={size} value={size}>
               {size}
@@ -184,7 +188,7 @@ export default function PostContentEditor({
         </select>
         <button
           type="button"
-          aria-label="Título 2"
+          aria-label={t("heading", { level: 2 })}
           aria-pressed={editor?.isActive("heading", { level: 2 }) ?? false}
           className={toolbarButtonClass}
           disabled={!editor?.can().chain().focus().toggleHeading({ level: 2 }).run()}
@@ -196,7 +200,7 @@ export default function PostContentEditor({
         </button>
         <button
           type="button"
-          aria-label="Título 3"
+          aria-label={t("heading", { level: 3 })}
           aria-pressed={editor?.isActive("heading", { level: 3 }) ?? false}
           className={toolbarButtonClass}
           disabled={!editor?.can().chain().focus().toggleHeading({ level: 3 }).run()}
@@ -211,80 +215,68 @@ export default function PostContentEditor({
             <button
               key={alignment}
               type="button"
-              aria-label={`Alinhar ${
-                alignment === "left"
-                  ? "à esquerda"
-                  : alignment === "right"
-                    ? "à direita"
-                    : alignment === "center"
-                      ? "ao centro"
-                      : "justificado"
-              }`}
+              aria-label={t("align", {
+                alignment: t(alignment),
+              })}
               aria-pressed={editor?.isActive({ textAlign: alignment }) ?? false}
               className={toolbarButtonClass}
               onClick={() =>
                 editor?.chain().focus().setTextAlign(alignment).run()
               }
             >
-              {alignment === "left"
-                ? "Esquerda"
-                : alignment === "center"
-                  ? "Centro"
-                  : alignment === "right"
-                    ? "Direita"
-                    : "Justificar"}
+              {t(alignment)}
             </button>
           ),
         )}
         <button
           type="button"
-          aria-label="Lista com marcadores"
+          aria-label={t("bulletList")}
           aria-pressed={editor?.isActive("bulletList") ?? false}
           className={toolbarButtonClass}
           disabled={!editor?.can().chain().focus().toggleBulletList().run()}
           onClick={() => editor?.chain().focus().toggleBulletList().run()}
         >
-          Lista
+          {t("list")}
         </button>
         <button
           type="button"
-          aria-label="Lista numerada"
+          aria-label={t("orderedList")}
           aria-pressed={editor?.isActive("orderedList") ?? false}
           className={toolbarButtonClass}
           disabled={!editor?.can().chain().focus().toggleOrderedList().run()}
           onClick={() => editor?.chain().focus().toggleOrderedList().run()}
         >
-          1. Lista
+          1. {t("list")}
         </button>
         <button
           type="button"
-          aria-label="Citação"
+          aria-label={t("quote")}
           aria-pressed={editor?.isActive("blockquote") ?? false}
           className={toolbarButtonClass}
           disabled={!editor?.can().chain().focus().toggleBlockquote().run()}
           onClick={() => editor?.chain().focus().toggleBlockquote().run()}
         >
-          Citação
+          {t("quote")}
         </button>
         <button
           type="button"
-          aria-label="Bloco de código"
+          aria-label={t("code")}
           aria-pressed={editor?.isActive("codeBlock") ?? false}
           className={toolbarButtonClass}
           disabled={!editor?.can().chain().focus().toggleCodeBlock().run()}
           onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
         >
-          Código
+          {t("code")}
         </button>
         <button
           type="button"
-          aria-label="Inserir link"
+          aria-label={t("insertLink")}
           className={toolbarButtonClass}
           onClick={() => {
-            const href = window.prompt("URL do link (https://...)");
+            const href = window.prompt(t("linkPrompt"));
             if (!href) return;
             if (!isAllowedUrl(href.trim())) {
-              toast.error("Informe um link http, https ou mailto válido.");
+              toast.error(t("invalidLink"));
               return;
             }
             editor
@@ -295,31 +287,31 @@ export default function PostContentEditor({
               .run();
           }}
         >
-          Link
+          {t("link")}
         </button>
         <button
           type="button"
-          aria-label="Remover link"
+          aria-label={t("removeLink")}
           className={toolbarButtonClass}
           disabled={!editor?.isActive("link")}
           onClick={() => editor?.chain().focus().unsetLink().run()}
         >
-          Remover link
+          {t("removeLink")}
         </button>
         <button
           type="button"
-          aria-label="Inserir imagem no conteúdo"
+          aria-label={t("insertImage")}
           className={toolbarButtonClass}
           onClick={() => {
-            const src = window.prompt("URL da imagem (https://...)");
+            const src = window.prompt(t("imageUrlPrompt"));
             if (!src) return;
             if (!isAllowedUrl(src.trim(), true)) {
-              toast.error("Informe uma URL de imagem http ou https válida.");
+              toast.error(t("invalidImageUrl"));
               return;
             }
-            const alt = window.prompt("Descreva a imagem para acessibilidade");
+            const alt = window.prompt(t("imageAltPrompt"));
             if (!alt?.trim()) {
-              toast.error("Informe uma descrição para a imagem.");
+              toast.error(t("imageAltRequired"));
               return;
             }
             editor
@@ -329,53 +321,53 @@ export default function PostContentEditor({
               .run();
           }}
         >
-          Imagem
+          {t("image")}
         </button>
         <button
           type="button"
-          aria-label="Inserir separador"
+          aria-label={t("insertSeparator")}
           className={toolbarButtonClass}
           onClick={() => editor?.chain().focus().setHorizontalRule().run()}
         >
-          Separador
+          {t("separator")}
         </button>
         <button
           type="button"
-          aria-label="Limpar formatação"
+          aria-label={t("clearFormatting")}
           className={toolbarButtonClass}
           onClick={() =>
             editor?.chain().focus().unsetAllMarks().clearNodes().run()
           }
         >
-          Limpar formatação
+          {t("clearFormatting")}
         </button>
         <button
           type="button"
-          aria-label="Adicionar exemplos de código com abas"
+          aria-label={t("addCodeTabs")}
           className={toolbarButtonClass}
           onClick={() =>
             editor?.chain().focus().insertContent(createCodeTabsContent()).run()
           }
         >
-          + Abas de código
+          + {t("codeTabs")}
         </button>
         <button
           type="button"
-          aria-label="Desfazer"
+          aria-label={t("undo")}
           className={toolbarButtonClass}
           disabled={!editor?.can().chain().focus().undo().run()}
           onClick={() => editor?.chain().focus().undo().run()}
         >
-          Desfazer
+          {t("undo")}
         </button>
         <button
           type="button"
-          aria-label="Refazer"
+          aria-label={t("redo")}
           className={toolbarButtonClass}
           disabled={!editor?.can().chain().focus().redo().run()}
           onClick={() => editor?.chain().focus().redo().run()}
         >
-          Refazer
+          {t("redo")}
         </button>
       </div>
       <EditorContent editor={editor} />

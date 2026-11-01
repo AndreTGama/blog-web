@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 import PostCard from "@/components/cards/post-card";
 import { CategoryProps } from "@/types/Category";
@@ -33,13 +34,15 @@ function parsePost(item: unknown): PostProps | null {
   if (
     !isRecord(item) ||
     typeof item.id !== "string" ||
+    (item.locale !== "pt" && item.locale !== "en") ||
+    typeof item.translation_group_id !== "string" ||
     typeof item.title !== "string" ||
     typeof item.slug !== "string" ||
     typeof item.excerpt !== "string" ||
     typeof item.content !== "string" ||
     typeof item.status !== "string" ||
     typeof item.views !== "number" ||
-    typeof item.cover_image !== "string" ||
+    (item.cover_image !== null && typeof item.cover_image !== "string") ||
     (item.published_at !== null && typeof item.published_at !== "string")
   ) {
     return null;
@@ -51,8 +54,29 @@ function parsePost(item: unknown): PostProps | null {
     if (categories === undefined) return null;
   }
 
+  let translations: PostProps["translations"];
+  if (item.translations !== undefined) {
+    if (!Array.isArray(item.translations)) return null;
+    translations = [];
+    for (const translation of item.translations) {
+      if (
+        !isRecord(translation) ||
+        (translation.locale !== "pt" && translation.locale !== "en") ||
+        typeof translation.slug !== "string"
+      ) {
+        return null;
+      }
+      translations.push({
+        locale: translation.locale,
+        slug: translation.slug,
+      });
+    }
+  }
+
   return {
     id: item.id,
+    locale: item.locale,
+    translation_group_id: item.translation_group_id,
     title: item.title,
     slug: item.slug,
     excerpt: item.excerpt,
@@ -62,6 +86,7 @@ function parsePost(item: unknown): PostProps | null {
     cover_image: item.cover_image,
     published_at: item.published_at,
     categories,
+    translations,
   };
 }
 
@@ -70,15 +95,18 @@ export default function PostsList({
   onToggleCategory,
   page,
   onPageChange,
-  heading = "Últimos conteúdos",
+  heading,
   itemsPerPage = CONTENT_LIMIT,
   showAllLink = false,
 }: PostsListProps) {
+  const locale = useLocale();
+  const t = useTranslations("posts");
   const postsParams = {
     limit: API_PAGE_SIZE,
     page: 1,
     order_by: "created_at" as const,
     order_direction: "desc" as const,
+    "filters[locale]": locale,
   };
 
   const postsQuery = usePostsIndex(postsParams, {
@@ -131,19 +159,18 @@ export default function PostsList({
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-foreground/10 pb-5">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-foreground/50">
-            Biblioteca
+            {t("library")}
           </p>
           <h2 id="content-heading" className="mt-2 text-2xl font-semibold">
             {selectedCategories.length > 0
-              ? `${selectedCategories.length} categoria(s) selecionada(s)`
-              : heading}
+              ? t("selectedCategories", { count: selectedCategories.length })
+              : heading ?? t("recent")}
           </h2>
         </div>
         <div className="flex items-center gap-4">
           {!postsError && !postsQuery.isPending && (
             <p className="text-sm text-foreground/55">
-              {filteredPosts.length}{" "}
-              {filteredPosts.length === 1 ? "artigo" : "artigos"}
+              {t("articleCount", { count: filteredPosts.length })}
             </p>
           )}
           {showAllLink && (
@@ -151,7 +178,7 @@ export default function PostsList({
               href="/artigos"
               className="text-sm font-medium text-foreground/75 underline decoration-foreground/25 underline-offset-4 transition-colors hover:text-foreground"
             >
-              Ver todos
+              {t("viewAll")}
             </Link>
           )}
         </div>
@@ -176,9 +203,9 @@ export default function PostsList({
 
       {!postsQuery.isPending && !postsError && pagePosts.length === 0 && (
         <div className="mt-6 rounded-2xl border border-dashed border-foreground/20 px-6 py-16 text-center">
-          <p className="font-medium">Ainda não há conteúdos nesta categoria.</p>
+          <p className="font-medium">{t("emptyTitle")}</p>
           <p className="mt-2 text-sm text-foreground/60">
-            Escolha outra categoria para ver mais artigos.
+            {t("emptyDescription")}
           </p>
         </div>
       )}

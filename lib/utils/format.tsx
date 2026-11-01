@@ -1,7 +1,10 @@
-export function formatDate(dateValue: string | null | undefined) {
-  if (!dateValue) return "Artigo";
+export function formatDate(
+  dateValue: string | null | undefined,
+  locale = "pt-BR",
+) {
+  if (!dateValue) return null;
   const date = new Date(dateValue);
   return Number.isNaN(date.getTime())
-    ? "Artigo"
-    : new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" }).format(date);
+    ? null
+    : new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(date);
 }

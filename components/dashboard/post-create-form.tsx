@@ -13,8 +13,8 @@ import {
 import { useAccessToken } from "@/lib/auth/session";
 import PostContentEditor from "@/components/dashboard/post-content-editor";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useState, type FormEvent } from "react";
 import { toast } from "react-toastify";
 
@@ -83,7 +83,15 @@ async function createPostWithImage(
   };
 }
 
-export default function PostCreateForm() {
+export default function PostCreateForm({
+  initialLocale,
+  translationGroupId,
+}: {
+  initialLocale: "pt" | "en";
+  translationGroupId?: string;
+}) {
+  const t = useTranslations("postForm");
+  const postAdmin = useTranslations("postAdmin");
   const router = useRouter();
   const queryClient = useQueryClient();
   const accessToken = useAccessToken();
@@ -94,6 +102,7 @@ export default function PostCreateForm() {
   const [status, setStatus] = useState<StorePostRequest["status"]>(
     StorePostRequestStatus.draft,
   );
+  const [locale, setLocale] = useState<"pt" | "en">(initialLocale);
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
 
   const categoryParams = { limit: 100, page: 1 } as const;
@@ -130,12 +139,12 @@ export default function PostCreateForm() {
     event.preventDefault();
 
     if (categoryIds.length === 0) {
-      toast.error("Selecione pelo menos uma categoria para o post.");
+      toast.error(t("categoryRequired"));
       return;
     }
 
     if (!contentText.trim()) {
-      toast.error("O conteúdo do post não pode ficar vazio.");
+      toast.error(t("contentRequired"));
       return;
     }
 
@@ -144,6 +153,10 @@ export default function PostCreateForm() {
     post.set("excerpt", excerpt.trim());
     post.set("content", content.trim());
     post.set("status", status);
+    post.set("locale", locale);
+    if (translationGroupId) {
+      post.set("translation_group_id", translationGroupId);
+    }
     post.delete("category_ids[]");
     categoryIds.forEach((categoryId) =>
       post.append("category_ids[]", categoryId),
@@ -161,12 +174,12 @@ export default function PostCreateForm() {
           if (response.status !== 201) {
             toast.error(
               getResponseMessage(response.data) ??
-                `Não foi possível criar o post (HTTP ${response.status}).`,
+                t("createError", { status: response.status }),
             );
             return;
           }
 
-          toast.success("Post criado com sucesso.");
+          toast.success(t("createSuccess"));
           void queryClient.invalidateQueries({
             queryKey: getPostsIndexQueryKey(),
           });
@@ -176,7 +189,7 @@ export default function PostCreateForm() {
           toast.error(
             error instanceof Error
               ? error.message
-              : "Não foi possível conectar à API para criar o post.",
+              : t("createConnectionError"),
           );
         },
       },
@@ -189,8 +202,27 @@ export default function PostCreateForm() {
       className="mt-8 space-y-6 rounded-lg border border-foreground/10 bg-foreground/[0.03] p-6"
     >
       <div>
+        <label htmlFor="post-locale" className="mb-2 block text-sm font-medium">
+          {t("language")}
+        </label>
+        <select
+          id="post-locale"
+          value={locale}
+          disabled={Boolean(translationGroupId)}
+          onChange={(event) => setLocale(event.target.value as "pt" | "en")}
+          className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-foreground focus:border-foreground focus:outline-none sm:max-w-xs disabled:opacity-70"
+        >
+          <option value="pt">{postAdmin("localePortuguese")}</option>
+          <option value="en">{postAdmin("localeEnglish")}</option>
+        </select>
+        {translationGroupId && (
+          <p className="mt-2 text-xs text-foreground/60">{t("translationHelp")}</p>
+        )}
+      </div>
+
+      <div>
         <label htmlFor="post-title" className="mb-2 block text-sm font-medium">
-          Título
+          {t("title")}
         </label>
         <input
           id="post-title"
@@ -200,14 +232,14 @@ export default function PostCreateForm() {
           maxLength={255}
           value={title}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="Título do post"
+            placeholder={t("titlePlaceholder")}
             className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-foreground placeholder:text-foreground/45 focus:border-foreground focus:outline-none"
           />
         </div>
 
         <div>
           <label htmlFor="post-excerpt" className="mb-2 block text-sm font-medium">
-            Resumo
+            {t("excerpt")}
           </label>
         <textarea
           id="post-excerpt"
@@ -216,15 +248,15 @@ export default function PostCreateForm() {
           rows={3}
           value={excerpt}
           onChange={(event) => setExcerpt(event.target.value)}
-          placeholder="Um resumo curto para apresentar o artigo"
+          placeholder={t("excerptPlaceholder")}
           className="w-full resize-y rounded-md border border-foreground/20 bg-background px-3 py-2 text-foreground placeholder:text-foreground/45 focus:border-foreground focus:outline-none"
         />
       </div>
 
       <div>
         <label htmlFor="post-cover-image" className="mb-2 block text-sm font-medium">
-          Imagem de capa{" "}
-          <span className="font-normal text-foreground/55">(opcional)</span>
+          {t("coverImage")}{" "}
+          <span className="font-normal text-foreground/55">{t("optional")}</span>
         </label>
         <input
           id="post-cover-image"
@@ -237,7 +269,7 @@ export default function PostCreateForm() {
 
       <div>
         <label htmlFor="post-content" className="mb-2 block text-sm font-medium">
-          Conteúdo
+          {t("content")}
         </label>
         <PostContentEditor
           value=""
@@ -249,35 +281,35 @@ export default function PostCreateForm() {
       </div>
 
       <fieldset>
-        <legend className="mb-2 text-sm font-medium">Categorias</legend>
+        <legend className="mb-2 text-sm font-medium">{t("categories")}</legend>
         {categoriesQuery.isPending && (
-          <p className="text-sm text-foreground/60">Carregando categorias...</p>
+          <p className="text-sm text-foreground/60">{t("loadingCategories")}</p>
         )}
         {categoriesQuery.isError && (
           <div className="text-sm text-red-800 dark:text-red-300">
-            <p>Não foi possível carregar as categorias.</p>
+            <p>{t("categoriesError")}</p>
             <button
               type="button"
               onClick={() => void categoriesQuery.refetch()}
               className="mt-1 underline underline-offset-2"
             >
-              Tentar novamente
+              {t("retry")}
             </button>
           </div>
         )}
         {categoriesResponse && categoriesResponse.status !== 200 && (
           <p role="alert" className="text-sm text-red-800 dark:text-red-300">
-            A API não conseguiu retornar as categorias (HTTP {categoriesResponse.status}).
+            {t("apiCategoriesError", { status: categoriesResponse.status })}
           </p>
         )}
         {categories && categories.length === 0 && (
           <p className="text-sm text-foreground/65">
-            Cadastre uma categoria antes de criar um post.{" "}
+            {t("noCategories")}{" "}
             <Link
               href="/dashboard/categories/new"
               className="underline underline-offset-2 hover:text-foreground"
             >
-              Criar categoria
+              {t("createCategory")}
             </Link>
           </p>
         )}
@@ -300,13 +332,13 @@ export default function PostCreateForm() {
           </div>
         )}
         <p className="mt-2 text-xs text-foreground/55">
-          Selecione pelo menos uma categoria.
+          {t("selectCategory")}
         </p>
       </fieldset>
 
       <div>
         <label htmlFor="post-status" className="mb-2 block text-sm font-medium">
-          Status
+          {t("status")}
         </label>
         <select
           id="post-status"
@@ -317,9 +349,9 @@ export default function PostCreateForm() {
           }
           className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-foreground focus:border-foreground focus:outline-none sm:max-w-xs"
         >
-          <option value={StorePostRequestStatus.draft}>Rascunho</option>
-          <option value={StorePostRequestStatus.published}>Publicado</option>
-          <option value={StorePostRequestStatus.archived}>Arquivado</option>
+          <option value={StorePostRequestStatus.draft}>{postAdmin("statusDraft")}</option>
+          <option value={StorePostRequestStatus.published}>{postAdmin("statusPublished")}</option>
+          <option value={StorePostRequestStatus.archived}>{postAdmin("statusArchived")}</option>
         </select>
       </div>
 
@@ -334,7 +366,7 @@ export default function PostCreateForm() {
         }
         className="rounded-md bg-foreground px-4 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {createPost.isPending ? "Salvando..." : "Criar post"}
+        {createPost.isPending ? t("pending") : t("submitCreate")}
       </button>
     </form>
   );

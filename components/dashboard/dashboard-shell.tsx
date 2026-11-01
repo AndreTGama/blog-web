@@ -6,34 +6,15 @@ import {
   useAuthUser,
 } from "@/lib/api/generated";
 import { clearAccessToken, useAccessToken } from "@/lib/auth/session";
+import { useTranslations } from "next-intl";
 import ThemeToggle from "@/components/ui/theme-toggle";
-import { usePathname, useRouter } from "next/navigation";
-import Link from "next/link";
+import { usePathname, useRouter, Link } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 type DashboardShellProps = {
   children: React.ReactNode;
 };
-
-const menuGroups = [
-  {
-    label: "Posts",
-    basePath: "/dashboard/posts",
-    items: [
-      { label: "Listar", href: "/dashboard/posts" },
-      { label: "Criar", href: "/dashboard/posts/new" },
-    ],
-  },
-  {
-    label: "Categorias",
-    basePath: "/dashboard/categories",
-    items: [
-      { label: "Listar", href: "/dashboard/categories" },
-      { label: "Criar", href: "/dashboard/categories/new" },
-    ],
-  },
-];
 
 function LoadingScreen({ message }: { message: string }) {
   return (
@@ -44,6 +25,7 @@ function LoadingScreen({ message }: { message: string }) {
 }
 
 export default function DashboardShell({ children }: DashboardShellProps) {
+  const t = useTranslations("dashboard");
   const router = useRouter();
   const pathname = usePathname();
   const accessToken = useAccessToken();
@@ -66,6 +48,24 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       : undefined,
   });
   const authResponse = userQuery.data;
+  const menuGroups = [
+    {
+      label: t("posts"),
+      basePath: "/dashboard/posts",
+      items: [
+        { label: t("list"), href: "/dashboard/posts" },
+        { label: t("create"), href: "/dashboard/posts/new" },
+      ],
+    },
+    {
+      label: t("categories"),
+      basePath: "/dashboard/categories",
+      items: [
+        { label: t("list"), href: "/dashboard/categories" },
+        { label: t("create"), href: "/dashboard/categories/new" },
+      ],
+    },
+  ];
 
   useEffect(() => {
     if (!accessToken) {
@@ -106,22 +106,22 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       onSuccess: (response) => {
         if (response.status === 200 || response.status === 401) {
           clearAccessToken();
-          toast.success("Você saiu da sua conta.");
+          toast.success(t("logoutSuccess"));
           router.replace("/login");
           router.refresh();
           return;
         }
 
-        toast.error("Não foi possível encerrar a sessão. Tente novamente.");
+        toast.error(t("logoutError"));
       },
       onError: () => {
-        toast.error("Não foi possível conectar à API para encerrar a sessão.");
+        toast.error(t("logoutConnectionError"));
       },
     });
   }
 
   if (!accessToken || userQuery.isPending || authResponse?.status === 401) {
-    return <LoadingScreen message="Verificando sua sessão..." />;
+    return <LoadingScreen message={t("verifying")} />;
   }
 
   if (userQuery.isError || authResponse?.status !== 200) {
@@ -129,19 +129,19 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       <main className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground">
         <section className="w-full max-w-lg rounded-lg border border-foreground/10 bg-foreground/[0.04] p-6">
           <h1 className="text-xl font-semibold">
-            Não foi possível validar a sessão
+            {t("sessionError")}
           </h1>
           <p className="mt-2 text-foreground/70">
             {userQuery.error instanceof Error
               ? userQuery.error.message
-              : "A API não conseguiu validar sua sessão."}
+              : t("sessionApiError")}
           </p>
           <button
             type="button"
             onClick={() => void userQuery.refetch()}
             className="mt-5 rounded-md bg-foreground px-4 py-2 font-semibold text-background"
           >
-            Tentar novamente
+            {t("retry")}
           </button>
         </section>
       </main>
@@ -155,7 +155,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       {mobileMenuOpen && (
         <button
           type="button"
-          aria-label="Fechar menu"
+          aria-label={t("closeMenu")}
           className="fixed inset-0 z-40 bg-black/40 md:hidden"
           onClick={() => setMobileMenuOpen(false)}
         />
@@ -172,14 +172,14 @@ export default function DashboardShell({ children }: DashboardShellProps) {
             className="text-lg font-semibold tracking-tight"
             onClick={() => setMobileMenuOpen(false)}
           >
-            Blog Admin
+            {t("brand")}
           </Link>
           <p className="mt-1 truncate text-sm text-foreground/60">
             {user.name}
           </p>
         </div>
 
-        <nav aria-label="Navegação do dashboard" className="flex-1 space-y-2 overflow-y-auto p-4">
+        <nav aria-label={t("navigation")} className="flex-1 space-y-2 overflow-y-auto p-4">
           <Link
             href="/dashboard"
             aria-current={pathname === "/dashboard" ? "page" : undefined}
@@ -190,7 +190,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                 : "text-foreground/75 hover:bg-foreground/5 hover:text-foreground"
             }`}
           >
-            Visão geral
+            {t("overview")}
           </Link>
 
           {menuGroups.map((group) => {
@@ -279,7 +279,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                 strokeWidth="1.7"
               />
             </svg>
-            {logoutMutation.isPending ? "Saindo..." : "Sair"}
+            {logoutMutation.isPending ? t("loggingOut") : t("logout")}
           </button>
         </div>
       </aside>
@@ -288,7 +288,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
         <header className="flex h-14 items-center border-b border-foreground/10 px-4 md:hidden">
           <button
             type="button"
-            aria-label="Abrir menu"
+            aria-label={t("openMenu")}
             aria-expanded={mobileMenuOpen}
             onClick={() => setMobileMenuOpen(true)}
             className="rounded-md p-2 hover:bg-foreground/5"
@@ -307,7 +307,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
               />
             </svg>
           </button>
-          <span className="ml-3 font-medium">Blog Admin</span>
+          <span className="ml-3 font-medium">{t("brand")}</span>
         </header>
         <main className="min-h-[calc(100vh-3.5rem)] p-6 md:min-h-screen md:p-10">
           {children}

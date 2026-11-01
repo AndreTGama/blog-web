@@ -13,6 +13,8 @@ export interface PostResource {
   /** @nullable */
   cover_image: string | null;
   allow_comments: string;
+  locale: 'pt' | 'en';
+  translation_group_id: string;
   title: string;
   slug: string;
   excerpt: string;
@@ -23,6 +25,7 @@ export interface PostResource {
   published_at: string | null;
   author?: UserResource;
   categories?: CategoryResource[];
+  translations?: { locale: 'pt' | 'en'; slug: string }[];
   post_metas?: PostMetaResource[];
   /** @nullable */
   created_at: string | null;

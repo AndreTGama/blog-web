@@ -18,6 +18,8 @@ export interface StorePostRequest {
   excerpt: string;
   status: StorePostRequestStatus;
   allow_comments?: boolean;
+  locale?: 'pt' | 'en';
+  translation_group_id?: string | null;
   /** @nullable */
   post_metas?: StorePostRequestPostMetasItem[] | null;
   /** @minItems 1 */

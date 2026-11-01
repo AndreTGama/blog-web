@@ -20,4 +20,5 @@ page?: number;
 order_by?: PostsIndexOrderBy;
 order_direction?: PostsIndexOrderDirection;
 'filters[search]'?: string;
+'filters[locale]'?: string;
 };

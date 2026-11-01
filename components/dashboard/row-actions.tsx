@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 type RowActionsProps = {
   label: string;
@@ -17,10 +18,12 @@ export default function RowActions({
   deletePending,
   deleteLabel,
 }: RowActionsProps) {
+  const t = useTranslations("postAdmin");
+
   return (
     <details className="group relative inline-block text-left">
       <summary
-        aria-label={`Ações para ${label}`}
+        aria-label={t("actionsFor", { label })}
         className="flex size-9 cursor-pointer list-none items-center justify-center rounded-md text-foreground/70 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground [&::-webkit-details-marker]:hidden"
       >
         <svg
@@ -40,7 +43,7 @@ export default function RowActions({
           href={editHref}
           className="block rounded px-3 py-2 text-sm transition-colors hover:bg-foreground/5"
         >
-          Editar
+          {t("edit")}
         </Link>
         {previewHref && (
           <Link
@@ -49,7 +52,7 @@ export default function RowActions({
             rel="noreferrer"
             className="block rounded px-3 py-2 text-sm transition-colors hover:bg-foreground/5"
           >
-            Visualizar
+            {t("preview")}
           </Link>
         )}
         <button

@@ -11,10 +11,10 @@ import {
 import type { PostResource } from "@/lib/api/generated/models";
 import type { UpdatePostRequest } from "@/lib/api/generated/models";
 import { useAccessToken } from "@/lib/auth/session";
+import { useTranslations } from "next-intl";
 import PostContentEditor from "@/components/dashboard/post-content-editor";
 import { useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useState, type FormEvent } from "react";
 import { toast } from "react-toastify";
 
@@ -82,6 +82,8 @@ function PostEditFields({
   postId: string;
   accessToken: string;
 }) {
+  const t = useTranslations("postForm");
+  const postAdmin = useTranslations("postAdmin");
   const router = useRouter();
   const queryClient = useQueryClient();
   const [categoryIds, setCategoryIds] = useState<string[] | null>(null);
@@ -126,7 +128,7 @@ function PostEditFields({
     const status = String(formData.get("status")) as PostStatus;
 
     if (!contentText.trim()) {
-      toast.error("O conteúdo do post não pode ficar vazio.");
+      toast.error(t("contentRequired"));
       return;
     }
 
@@ -146,12 +148,12 @@ function PostEditFields({
           if (response.status !== 200) {
             toast.error(
               responseMessage(response.data) ??
-                `Não foi possível atualizar o post (HTTP ${response.status}).`,
+                t("updateError", { status: response.status }),
             );
             return;
           }
 
-          toast.success("Post atualizado com sucesso.");
+          toast.success(t("updateSuccess"));
           void queryClient.invalidateQueries({
             queryKey: getPostsIndexQueryKey(),
           });
@@ -164,7 +166,7 @@ function PostEditFields({
           toast.error(
             error instanceof Error
               ? error.message
-              : "Não foi possível conectar à API para atualizar o post.",
+              : t("updateConnectionError"),
           );
         },
       },
@@ -178,7 +180,7 @@ function PostEditFields({
     >
       <div>
         <label htmlFor="post-title" className="mb-2 block text-sm font-medium">
-          Título
+          {t("title")}
         </label>
         <input
           id="post-title"
@@ -193,7 +195,7 @@ function PostEditFields({
 
       <div>
         <label htmlFor="post-excerpt" className="mb-2 block text-sm font-medium">
-          Resumo
+          {t("excerpt")}
         </label>
         <textarea
           id="post-excerpt"
@@ -210,7 +212,7 @@ function PostEditFields({
           htmlFor="post-cover-image"
           className="mb-2 block text-sm font-medium"
         >
-          URL da imagem de capa (opcional)
+          {t("coverImage")} {t("optional")}
         </label>
         <input
           id="post-cover-image"
@@ -224,7 +226,7 @@ function PostEditFields({
 
       <div>
         <label htmlFor="post-content" className="mb-2 block text-sm font-medium">
-          Conteúdo
+          {t("content")}
         </label>
         <PostContentEditor
           value={post.content}
@@ -236,25 +238,25 @@ function PostEditFields({
       </div>
 
       <fieldset>
-        <legend className="mb-2 text-sm font-medium">Categorias</legend>
+        <legend className="mb-2 text-sm font-medium">{t("categories")}</legend>
         {categoriesQuery.isPending && (
-          <p className="text-sm text-foreground/60">Carregando categorias...</p>
+          <p className="text-sm text-foreground/60">{t("loadingCategories")}</p>
         )}
         {categoriesQuery.isError && (
           <div className="text-sm text-red-800 dark:text-red-300">
-            <p>Não foi possível carregar as categorias.</p>
+            <p>{t("categoriesError")}</p>
             <button
               type="button"
               onClick={() => void categoriesQuery.refetch()}
               className="mt-1 underline underline-offset-2"
             >
-              Tentar novamente
+              {t("retry")}
             </button>
           </div>
         )}
         {categoriesResponse && categoriesResponse.status !== 200 && (
           <p role="alert" className="text-sm text-red-800 dark:text-red-300">
-            A API não conseguiu retornar as categorias (HTTP {categoriesResponse.status}).
+            {t("apiCategoriesError", { status: categoriesResponse.status })}
           </p>
         )}
         {categories && categories.length > 0 && (
@@ -277,17 +279,17 @@ function PostEditFields({
         )}
         {categories === null && !categoriesQuery.isPending && !categoriesQuery.isError && (
           <p className="text-sm text-foreground/65">
-            A resposta da API não corresponde ao formato esperado.
+            {t("invalidCategories")}
           </p>
         )}
         {categories && categories.length === 0 && (
           <p className="text-sm text-foreground/65">
-            Não há categorias cadastradas.{" "}
+            {t("noCategories")}{" "}
             <Link
               href="/dashboard/categories/new"
               className="underline underline-offset-2 hover:text-foreground"
             >
-              Criar categoria
+              {t("createCategory")}
             </Link>
           </p>
         )}
@@ -295,7 +297,7 @@ function PostEditFields({
 
       <div>
         <label htmlFor="post-status" className="mb-2 block text-sm font-medium">
-          Status
+          {t("status")}
         </label>
         <select
           id="post-status"
@@ -303,9 +305,9 @@ function PostEditFields({
           defaultValue={getPostStatus(post.status)}
           className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-foreground focus:border-foreground focus:outline-none sm:max-w-xs"
         >
-          <option value="draft">Rascunho</option>
-          <option value="published">Publicado</option>
-          <option value="archived">Arquivado</option>
+          <option value="draft">{postAdmin("statusDraft")}</option>
+          <option value="published">{postAdmin("statusPublished")}</option>
+          <option value="archived">{postAdmin("statusArchived")}</option>
         </select>
       </div>
 
@@ -314,15 +316,16 @@ function PostEditFields({
         disabled={updatePost.isPending}
         className="rounded-md bg-foreground px-4 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {updatePost.isPending ? "Salvando..." : "Salvar alterações"}
+        {updatePost.isPending ? t("pending") : t("submitUpdate")}
       </button>
     </form>
   );
 }
 
-export default function PostEditForm() {
-  const params = useParams<{ id: string }>();
-  const postId = params.id;
+export default function PostEditForm({ postId }: { postId: string }) {
+  const t = useTranslations("postForm");
+  const common = useTranslations("dashboard");
+  const postAdmin = useTranslations("postAdmin");
   const accessToken = useAccessToken();
   const postQuery = usePostsShow(postId, {
     fetch: accessToken
@@ -336,24 +339,24 @@ export default function PostEditForm() {
   });
 
   if (!accessToken || postQuery.isPending) {
-    return <p className="text-foreground/70">Carregando post...</p>;
+    return <p className="text-foreground/70">{t("loadPost")}</p>;
   }
 
   if (postQuery.isError) {
     return (
       <section className="max-w-3xl rounded-lg border border-foreground/10 p-6">
-        <h1 className="text-2xl font-semibold">Não foi possível carregar o post</h1>
+        <h1 className="text-2xl font-semibold">{t("loadPostError")}</h1>
         <p className="mt-3 text-foreground/70">
           {postQuery.error instanceof Error
             ? postQuery.error.message
-            : "Ocorreu um erro ao consultar a API."}
+            : t("apiError")}
         </p>
         <button
           type="button"
           onClick={() => void postQuery.refetch()}
           className="mt-4 rounded-md bg-foreground px-4 py-2 text-sm font-semibold text-background"
         >
-          Tentar novamente
+          {common("retry")}
         </button>
       </section>
     );
@@ -363,16 +366,16 @@ export default function PostEditForm() {
   if (response.status !== 200) {
     return (
       <section className="max-w-3xl rounded-lg border border-foreground/10 p-6">
-        <h1 className="text-2xl font-semibold">Post indisponível</h1>
+        <h1 className="text-2xl font-semibold">{t("postUnavailable")}</h1>
         <p role="alert" className="mt-3 text-foreground/70">
           {responseMessage(response.data) ??
-            `A API não conseguiu carregar este post (HTTP ${response.status}).`}
+            t("apiPostError", { status: response.status })}
         </p>
         <Link
           href="/dashboard/posts"
           className="mt-4 inline-block text-sm underline underline-offset-4"
         >
-          Voltar para posts
+          {t("back")}
         </Link>
       </section>
     );
@@ -383,14 +386,25 @@ export default function PostEditForm() {
   return (
     <div className="mx-auto max-w-5xl">
       <header className="border-b border-foreground/10 pb-6">
-        <p className="text-sm text-foreground/60">Painel administrativo</p>
+        <p className="text-sm text-foreground/60">{common("adminLabel")}</p>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-3xl font-semibold">Editar post</h1>
+          <h1 className="text-3xl font-semibold">{t("editTitle")}</h1>
           <Link
             href="/dashboard/posts"
             className="text-sm text-foreground/70 underline-offset-4 hover:text-foreground hover:underline"
           >
-            Voltar para posts
+            {t("back")}
+          </Link>
+          <Link
+            href={`/dashboard/posts/new?translation_group_id=${encodeURIComponent(post.translation_group_id)}`}
+            locale={post.locale === "pt" ? "en" : "pt"}
+            className="text-sm text-foreground/70 underline-offset-4 hover:text-foreground hover:underline"
+          >
+            {postAdmin("createTranslation")} (
+            {post.locale === "pt"
+              ? postAdmin("localeEnglish")
+              : postAdmin("localePortuguese")}
+            )
           </Link>
         </div>
       </header>

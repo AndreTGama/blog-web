@@ -7,6 +7,7 @@ import {
 import { CategoryProps } from "@/types/Category";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 const API_PAGE_SIZE = 100;
 
@@ -54,6 +55,7 @@ export default function CategoriesFilter({
   onToggleCategory,
   onClearCategories,
 }: CategoriesFilterProps) {
+  const t = useTranslations("categories");
   const [categorySearch, setCategorySearch] = useState("");
 
   const categoriesParams = { limit: API_PAGE_SIZE, page: 1 };
@@ -83,21 +85,17 @@ export default function CategoriesFilter({
 
   return (
     <aside
-      aria-label="Filtros de conteúdo"
+      aria-label={t("filterLabel")}
       className="lg:sticky lg:top-8 lg:self-start"
     >
-      <h2 className="text-sm font-semibold uppercase tracking-[0.16em]">
-        Categorias
-      </h2>
-      <label htmlFor="category-search" className="sr-only">
-        Pesquisar categorias
-      </label>
+      <h2 className="text-sm font-semibold uppercase tracking-[0.16em]">{t("heading")}</h2>
+      <label htmlFor="category-search" className="sr-only">{t("searchLabel")}</label>
       <input
         id="category-search"
         type="search"
         value={categorySearch}
         onChange={(event) => setCategorySearch(event.target.value)}
-        placeholder="Pesquisar categoria"
+        placeholder={t("searchPlaceholder")}
         className="mt-4 w-full rounded-lg border border-foreground/15 bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-foreground/45 focus:border-foreground/45 focus:outline-none"
       />
 
@@ -112,25 +110,25 @@ export default function CategoriesFilter({
               : "text-foreground/70 hover:bg-foreground/5 hover:text-foreground"
           }`}
         >
-          Todas as categorias
+          {t("all")}
         </button>
 
         {categoriesQuery.isPending && (
-          <p className="px-3 py-2 text-sm text-foreground/55">Carregando...</p>
+          <p className="px-3 py-2 text-sm text-foreground/55">{t("loading")}</p>
         )}
         {categoriesQuery.isError && (
           <p className="px-3 py-2 text-sm text-foreground/65">
-            Não foi possível carregar as categorias.
+            {t("loadError")}
           </p>
         )}
         {categoriesQuery.data && categoriesQuery.data.status !== 200 && (
           <p className="px-3 py-2 text-sm text-foreground/65">
-            Categorias indisponíveis (HTTP {categoriesQuery.data.status}).
+            {t("unavailable", { status: categoriesQuery.data.status })}
           </p>
         )}
         {categories && visibleCategories.length === 0 && (
           <p className="px-3 py-2 text-sm text-foreground/55">
-            Nenhuma categoria encontrada.
+            {t("none")}
           </p>
         )}
         {visibleCategories.map((category) => (

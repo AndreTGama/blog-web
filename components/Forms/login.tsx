@@ -3,13 +3,15 @@
 import { useAuthLogin } from "@/lib/api/generated";
 import { saveAccessToken } from "@/lib/auth/session";
 import type { LoginRequest } from "@/lib/api/generated/models";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { useState, type FormEvent } from "react";
 import { toast } from "react-toastify";
 import Input from "../ui/input";
 import ThemeToggle from "../ui/theme-toggle";
 
 export default function Login() {
+  const t = useTranslations("login");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,7 +19,7 @@ export default function Login() {
     mutation: {
       onSuccess: (response) => {
         if (response.status !== 200) {
-          toast.error(response.data.message || "E-mail ou senha incorretos.");
+          toast.error(response.data.message || t("invalidCredentials"));
           return;
         }
 
@@ -27,12 +29,12 @@ export default function Login() {
           !("data" in result) ||
           typeof result.data.access_token !== "string"
         ) {
-          toast.error("A API retornou uma resposta de login inválida.");
+          toast.error(t("invalidResponse"));
           return;
         }
 
         saveAccessToken(result.data.access_token);
-        toast.success("Login realizado com sucesso!");
+        toast.success(t("success"));
         router.replace("/dashboard");
         router.refresh();
       },
@@ -40,7 +42,7 @@ export default function Login() {
         toast.error(
           error instanceof Error
             ? error.message
-            : "Não foi possível conectar à API de autenticação.",
+            : t("connectionError"),
         );
       },
     },
@@ -55,18 +57,17 @@ export default function Login() {
 
   return (
     <>
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-foreground">Login</h1>
-        <ThemeToggle />
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl font-semibold">{t("title")}</h1>
       </div>
       <form onSubmit={handleSubmit}>
         <div className="mb-6">
           <Input
             type="email"
             id="email"
-            label="E-mail"
+            label={t("email")}
             name="email"
-            placeholder="seu@email.com"
+            placeholder={t("emailPlaceholder")}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
@@ -75,9 +76,9 @@ export default function Login() {
           <Input
             type="password"
             id="password"
-            label="Senha"
+            label={t("password")}
             name="password"
-            placeholder="Sua senha"
+            placeholder={t("passwordPlaceholder")}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
@@ -87,7 +88,7 @@ export default function Login() {
           disabled={loginMutation.isPending}
           className="w-full rounded-md bg-foreground px-4 py-2 font-semibold text-background transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loginMutation.isPending ? "Entrando..." : "Entrar"}
+          {loginMutation.isPending ? t("pending") : t("submit")}
         </button>
       </form>
     </>

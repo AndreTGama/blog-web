@@ -4,11 +4,13 @@ import { getCategoriesIndexQueryKey, useCategoriesStore } from "@/lib/api/genera
 import type { StoreCategoryRequest } from "@/lib/api/generated/models";
 import { useAccessToken } from "@/lib/auth/session";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { useState, type FormEvent } from "react";
 import { toast } from "react-toastify";
 
 export default function CategoryCreateForm() {
+  const t = useTranslations("categoryAdmin");
   const router = useRouter();
   const queryClient = useQueryClient();
   const accessToken = useAccessToken();
@@ -34,12 +36,12 @@ export default function CategoryCreateForm() {
               "message" in response.data &&
               typeof response.data.message === "string"
                 ? response.data.message
-                : "Não foi possível criar a categoria.";
+                : t("createError");
             toast.error(message);
             return;
           }
 
-          toast.success("Categoria criada com sucesso.");
+          toast.success(t("createSuccess"));
           void queryClient.invalidateQueries({
             queryKey: getCategoriesIndexQueryKey(),
           });
@@ -49,7 +51,7 @@ export default function CategoryCreateForm() {
           toast.error(
             error instanceof Error
               ? error.message
-              : "Não foi possível conectar à API para criar a categoria.",
+              : t("createConnectionError"),
           );
         },
       },
@@ -63,7 +65,7 @@ export default function CategoryCreateForm() {
     >
       <div>
         <label htmlFor="category-name" className="mb-2 block text-sm font-medium">
-          Nome da categoria
+          {t("name")}
         </label>
         <input
           id="category-name"
@@ -74,11 +76,11 @@ export default function CategoryCreateForm() {
           maxLength={255}
           value={name}
           onChange={(event) => setName(event.target.value)}
-          placeholder="Ex.: Padrões de projeto"
+          placeholder={t("namePlaceholder")}
           className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-foreground placeholder:text-foreground/45 focus:border-foreground focus:outline-none"
         />
         <p className="mt-2 text-xs text-foreground/60">
-          O slug será gerado pela API a partir do nome.
+          {t("slugGenerated")}
         </p>
       </div>
 
@@ -87,7 +89,7 @@ export default function CategoryCreateForm() {
         disabled={createCategory.isPending || name.trim().length < 3}
         className="mt-6 rounded-md bg-foreground px-4 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {createCategory.isPending ? "Salvando..." : "Criar categoria"}
+        {createCategory.isPending ? t("pending") : t("new")}
       </button>
     </form>
   );

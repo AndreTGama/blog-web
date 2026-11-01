@@ -1,28 +1,31 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 export default function DashboardPage() {
+  const t = useTranslations("dashboardHome");
+
   return (
     <div className="mx-auto max-w-5xl">
       <header className="border-b border-foreground/10 pb-6">
-        <p className="text-sm text-foreground/60">Painel administrativo</p>
-        <h1 className="mt-2 text-3xl font-semibold">Visão geral</h1>
+        <p className="text-sm text-foreground/60">{t("eyebrow")}</p>
+        <h1 className="mt-2 text-3xl font-semibold">{t("title")}</h1>
         <p className="mt-2 text-foreground/70">
-          Gerencie os posts e as categorias do seu blog pelo menu lateral.
+          {t("description")}
         </p>
       </header>
 
       <section className="mt-8 grid gap-4 sm:grid-cols-2">
         {[
           {
-            title: "Posts",
-            description: "Acesse, organize e crie artigos para o blog.",
+            title: t("posts"),
+            description: t("postsDescription"),
             href: "/dashboard/posts",
           },
           {
-            title: "Categorias",
-            description: "Organize os assuntos publicados no blog.",
+            title: t("categories"),
+            description: t("categoriesDescription"),
             href: "/dashboard/categories",
           },
         ].map((section) => (

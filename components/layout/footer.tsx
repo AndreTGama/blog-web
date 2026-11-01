@@ -1,16 +1,19 @@
 "use client";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 export default function Footer() {
+  const t = useTranslations("footer");
+
   return (
     <footer className="border-t border-foreground/10 bg-foreground/[0.03]">
       <div className="mx-auto flex max-w-5xl flex-col items-center px-5 py-16 text-center sm:px-8 sm:py-20">
         <h2 className="text-2xl font-semibold tracking-tight">
-          Conheça o blog
+          {t("title")}
         </h2>
         <Image
           src="/img/logo.png"
-          alt="Ilustração do rosto do autor do blog de tecnologia"
+          alt={t("authorAlt")}
           width={144}
           height={144}
           className="mt-7 size-32 rounded-full object-cover sm:size-36"
@@ -19,17 +22,16 @@ export default function Footer() {
           André Toledo Gama
         </p>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-foreground/70 sm:text-base sm:leading-7">
-          Conteúdos sobre arquitetura, padrões de projeto e desenvolvimento, com
-          exemplos práticos para levar da leitura ao código.
+          {t("description")}
         </p>
-        <nav aria-label="Redes sociais" className="mt-6">
+        <nav aria-label={t("social")} className="mt-6">
           <ul className="flex justify-center">
             <li>
               <a
                 href="https://www.linkedin.com/"
                 target="_blank"
                 rel="noreferrer"
-                aria-label="LinkedIn (abre em uma nova aba)"
+                aria-label={t("linkedin")}
                 className="text-foreground/65 transition-colors hover:text-foreground"
               >
                 <svg

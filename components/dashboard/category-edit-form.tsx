@@ -9,10 +9,10 @@ import {
 import type { UpdateCategoryRequest } from "@/lib/api/generated/models";
 import { useAccessToken } from "@/lib/auth/session";
 import { useQueryClient } from "@tanstack/react-query";
-import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter, Link } from "@/i18n/navigation";
 import { useState, type FormEvent } from "react";
 import { toast } from "react-toastify";
-import Link from "next/link";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -24,9 +24,13 @@ function responseMessage(data: unknown) {
     : null;
 }
 
-export default function CategoryEditForm() {
-  const params = useParams<{ id: string }>();
-  const categoryId = params.id;
+export default function CategoryEditForm({
+  categoryId,
+}: {
+  categoryId: string;
+}) {
+  const t = useTranslations("categoryAdmin");
+  const common = useTranslations("dashboard");
   const accessToken = useAccessToken();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -50,24 +54,24 @@ export default function CategoryEditForm() {
   });
 
   if (categoryQuery.isPending) {
-    return <p className="text-foreground/70">Carregando categoria...</p>;
+    return <p className="text-foreground/70">{t("loadingSingle")}</p>;
   }
 
   if (categoryQuery.isError) {
     return (
       <section className="max-w-2xl rounded-lg border border-foreground/10 p-6">
-        <h1 className="text-2xl font-semibold">Não foi possível carregar a categoria</h1>
+        <h1 className="text-2xl font-semibold">{t("loadSingleError")}</h1>
         <p className="mt-3 text-foreground/70">
           {categoryQuery.error instanceof Error
             ? categoryQuery.error.message
-            : "Ocorreu um erro ao consultar a API."}
+            : t("apiConnectionError")}
         </p>
         <button
           type="button"
           onClick={() => void categoryQuery.refetch()}
           className="mt-4 rounded-md bg-foreground px-4 py-2 text-sm font-semibold text-background"
         >
-          Tentar novamente
+          {common("retry")}
         </button>
       </section>
     );
@@ -77,16 +81,17 @@ export default function CategoryEditForm() {
   if (response.status !== 200) {
     return (
       <section className="max-w-2xl rounded-lg border border-foreground/10 p-6">
-        <h1 className="text-2xl font-semibold">Categoria indisponível</h1>
+        <h1 className="text-2xl font-semibold">{t("unavailable")}
+        </h1>
         <p role="alert" className="mt-3 text-foreground/70">
           {responseMessage(response.data) ??
-            `A API não conseguiu carregar esta categoria (HTTP ${response.status}).`}
+            t("apiLoadError", { status: response.status })}
         </p>
         <Link
           href="/dashboard/categories"
           className="mt-4 inline-block text-sm underline underline-offset-4"
         >
-          Voltar para categorias
+          {t("back")}
         </Link>
       </section>
     );
@@ -106,12 +111,12 @@ export default function CategoryEditForm() {
           if (updateResponse.status !== 200) {
             toast.error(
               responseMessage(updateResponse.data) ??
-                `Não foi possível atualizar a categoria (HTTP ${updateResponse.status}).`,
+                t("updateError", { status: updateResponse.status }),
             );
             return;
           }
 
-          toast.success("Categoria atualizada com sucesso.");
+          toast.success(t("updateSuccess"));
           void queryClient.invalidateQueries({
             queryKey: getCategoriesIndexQueryKey(),
           });
@@ -124,7 +129,7 @@ export default function CategoryEditForm() {
           toast.error(
             error instanceof Error
               ? error.message
-              : "Não foi possível conectar à API para atualizar a categoria.",
+              : t("updateConnectionError"),
           );
         },
       },
@@ -134,14 +139,14 @@ export default function CategoryEditForm() {
   return (
     <div className="mx-auto max-w-5xl">
       <header className="border-b border-foreground/10 pb-6">
-        <p className="text-sm text-foreground/60">Painel administrativo</p>
+        <p className="text-sm text-foreground/60">{common("adminLabel")}</p>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-3xl font-semibold">Editar categoria</h1>
+          <h1 className="text-3xl font-semibold">{t("editTitle")}</h1>
           <Link
             href="/dashboard/categories"
             className="text-sm text-foreground/70 underline-offset-4 hover:text-foreground hover:underline"
           >
-            Voltar para categorias
+            {t("back")}
           </Link>
         </div>
       </header>
@@ -152,7 +157,7 @@ export default function CategoryEditForm() {
       >
         <div>
           <label htmlFor="category-name" className="mb-2 block text-sm font-medium">
-            Nome da categoria
+            {t("name")}
           </label>
           <input
             id="category-name"
@@ -166,7 +171,7 @@ export default function CategoryEditForm() {
             className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-foreground focus:border-foreground focus:outline-none"
           />
           <p className="mt-2 text-xs text-foreground/60">
-            Slug atual: {category.slug}. A API pode atualizá-lo com base no nome.
+            {t("slugCurrent", { slug: category.slug })}
           </p>
         </div>
 
@@ -179,7 +184,7 @@ export default function CategoryEditForm() {
           }
           className="mt-6 rounded-md bg-foreground px-4 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {updateCategory.isPending ? "Salvando..." : "Salvar alterações"}
+          {updateCategory.isPending ? t("pending") : t("save")}
         </button>
       </form>
     </div>

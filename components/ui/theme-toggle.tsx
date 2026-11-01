@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { useTranslations } from "next-intl";
 
 type Theme = "light" | "dark";
 const THEME_STORAGE_KEY = "theme";
@@ -8,11 +9,6 @@ const THEME_STORAGE_KEY = "theme";
 let currentTheme: Theme = "light";
 let hasReadStoredTheme = false;
 const subscribers = new Set<() => void>();
-
-const options: { value: Theme; label: string }[] = [
-  { value: "light", label: "Ativar tema claro" },
-  { value: "dark", label: "Ativar tema escuro" },
-];
 
 function getStoredTheme(): Theme {
   const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
@@ -92,6 +88,7 @@ function ThemeIcon({ theme }: { theme: Theme }) {
 }
 
 export default function ThemeToggle() {
+  const t = useTranslations("theme");
   const theme = useSyncExternalStore(
     subscribeToTheme,
     getThemeSnapshot,
@@ -104,24 +101,24 @@ export default function ThemeToggle() {
 
   return (
     <div
-      aria-label="Tema de cores"
+      aria-label={t("label")}
       className="inline-flex rounded-full bg-foreground/10 p-1 text-foreground"
       role="group"
     >
-      {options.map((option) => (
+      {(["light", "dark"] as const).map((option) => (
         <button
-          key={option.value}
+          key={option}
           type="button"
-          aria-label={option.label}
-          aria-pressed={theme === option.value}
-          onClick={() => selectTheme(option.value)}
+          aria-label={t(option)}
+          aria-pressed={theme === option}
+          onClick={() => selectTheme(option)}
           className={`flex size-8 items-center justify-center rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground ${
-            theme === option.value
+            theme === option
               ? "bg-background text-foreground shadow-sm"
               : "hover:bg-background/70"
           }`}
         >
-          <ThemeIcon theme={option.value} />
+          <ThemeIcon theme={option} />
         </button>
       ))}
     </div>

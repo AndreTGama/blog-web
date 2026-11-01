@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 import { PostCardProps } from "@/types/Post";
 
@@ -12,6 +13,9 @@ export default function PostCard({
   selectedCategories,
   onToggleCategory,
 }: PostCardProps) {
+  const locale = useLocale();
+  const t = useTranslations("posts");
+
   return (
     <article className="group shadow-xl hover:shadow-xl/20 flex min-w-0 flex-col overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.025] transition-colors hover:bg-foreground/[0.05]">
       <Link
@@ -61,7 +65,9 @@ export default function PostCard({
           </p>
           <div className="mt-5 flex items-center justify-between gap-3 border-t border-foreground/10 pt-4 text-xs text-foreground/50">
             <span>
-              {formatDate(post.published_at)} · {post.views} visualizações
+              {formatDate(post.published_at, locale === "pt" ? "pt-BR" : "en-US")}
+              {post.published_at ? " · " : ""}
+              {t("views", { count: post.views })}
             </span>
           </div>
         </div>

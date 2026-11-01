@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 type PostsPaginationProps = {
   currentPage: number;
   pageCount: number;
@@ -9,9 +11,11 @@ export default function PostsPagination({
   pageCount,
   onPageChange,
 }: PostsPaginationProps) {
+  const t = useTranslations("pagination");
+
   return (
     <nav
-      aria-label="Paginação dos conteúdos"
+      aria-label={t("label")}
       className="mt-8 flex flex-wrap items-center justify-center gap-2"
     >
       <button
@@ -20,10 +24,10 @@ export default function PostsPagination({
         disabled={currentPage <= 1}
         className="rounded-full border border-foreground/15 px-4 py-2 text-sm transition-colors hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        Anterior
+        {t("previous")}
       </button>
       <span className="px-2 text-sm text-foreground/60">
-        {currentPage} / {pageCount}
+        {t("page", { current: currentPage, total: pageCount })}
       </span>
       <button
         type="button"
@@ -31,7 +35,7 @@ export default function PostsPagination({
         disabled={currentPage >= pageCount}
         className="rounded-full border border-foreground/15 px-4 py-2 text-sm transition-colors hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        Próxima
+        {t("next")}
       </button>
     </nav>
   );

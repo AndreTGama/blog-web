@@ -3,13 +3,17 @@
 import { getPostsShowQueryKey, usePostsShow } from "@/lib/api/generated";
 import PostContent from "@/components/home/post-content";
 import { useAccessToken } from "@/lib/auth/session";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import ThemeToggle from "@/components/ui/theme-toggle";
 import { formatDate } from "@/lib/utils/format";
 
 
 export default function ArticleDetail({ slug }: { slug: string }) {
+  const locale = useLocale();
+  const t = useTranslations("article");
+  const common = useTranslations("dashboard");
   const accessToken = useAccessToken();
   const postIdentifier = encodeURIComponent(slug);
   const articleQuery = usePostsShow(postIdentifier, {
@@ -17,14 +21,21 @@ export default function ArticleDetail({ slug }: { slug: string }) {
       ? { headers: { Authorization: `Bearer ${accessToken}` } }
       : undefined,
     query: {
-      queryKey: [...getPostsShowQueryKey(postIdentifier), accessToken],
+      queryKey: [...getPostsShowQueryKey(postIdentifier), locale, accessToken],
       retry: false,
     },
   });
 
   const response = articleQuery.data;
-  const article = response?.status === 200 ? response.data.data : null;
-  const notFound = response?.status === 404;
+  const responseArticle = response?.status === 200 ? response.data.data : null;
+  const article = responseArticle?.locale === locale ? responseArticle : null;
+  const notFound =
+    response?.status === 404 ||
+    (responseArticle !== null && article === null);
+  const publishedDate = formatDate(
+    article?.published_at,
+    locale === "pt" ? "pt-BR" : "en-US",
+  );
   const unpublished =
     article !== null &&
     article.status.toLowerCase() !== "published" &&
@@ -32,17 +43,17 @@ export default function ArticleDetail({ slug }: { slug: string }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <nav aria-label="Navegação principal" className="border-b border-foreground/10">
+      <nav aria-label={t("navigation")} className="border-b border-foreground/10">
         <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
           <Link
             href="/"
-            aria-label="Blog de tecnologia - início"
+            aria-label={t("home")}
             className="inline-flex items-center gap-3"
           >
             <span className="flex size-10 items-center justify-center rounded-xl bg-foreground text-sm font-bold text-background">
               &lt;/&gt;
             </span>
-            <span className="font-semibold tracking-tight">Blog de tecnologia</span>
+            <span className="font-semibold tracking-tight">{t("brand")}</span>
           </Link>
           <ThemeToggle />
         </div>
@@ -54,8 +65,27 @@ export default function ArticleDetail({ slug }: { slug: string }) {
           className="inline-flex items-center gap-2 text-sm text-foreground/65 transition-colors hover:text-foreground"
         >
           <span aria-hidden="true">←</span>
-          Voltar para os artigos
+          {t("back")}
         </Link>
+        {article?.translations && article.translations.length > 0 && (
+          <nav
+            aria-label={t("switchLanguage")}
+            className="mt-4 flex gap-2 text-sm"
+          >
+            {article.translations.map((translation) => (
+              <Link
+                key={translation.locale}
+                href={`/artigos/${translation.slug}`}
+                locale={translation.locale}
+                className="rounded-full border border-foreground/15 px-3 py-1 text-foreground/70 transition-colors hover:bg-foreground/5 hover:text-foreground"
+              >
+                {translation.locale === "en"
+                  ? t("english")
+                  : t("portuguese")}
+              </Link>
+            ))}
+          </nav>
+        )}
 
         {articleQuery.isPending && (
           <div role="status" className="mt-10 animate-pulse space-y-5">
@@ -63,19 +93,19 @@ export default function ArticleDetail({ slug }: { slug: string }) {
             <span className="block h-12 max-w-2xl rounded bg-foreground/10" />
             <span className="block aspect-[16/7] rounded-2xl bg-foreground/10" />
             <span className="block h-48 rounded bg-foreground/10" />
-            <span className="sr-only">Carregando artigo...</span>
+            <span className="sr-only">{t("loading")}</span>
           </div>
         )}
 
         {!articleQuery.isPending && (articleQuery.isError || notFound) && (
           <section className="mt-10 rounded-2xl border border-foreground/10 bg-foreground/[0.025] px-6 py-14 text-center">
             <h1 className="text-2xl font-semibold">
-              {notFound ? "Artigo não encontrado" : "Não foi possível carregar o artigo"}
+              {notFound ? t("notFound") : t("loadError")}
             </h1>
             <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-foreground/65">
               {notFound
-                ? "Este artigo pode ter sido removido ou o endereço está incorreto."
-                : "Verifique se a API está disponível e tente novamente."}
+                ? t("notFoundDescription")
+                : t("loadErrorDescription")}
             </p>
             {articleQuery.isError && (
               <button
@@ -83,7 +113,7 @@ export default function ArticleDetail({ slug }: { slug: string }) {
                 onClick={() => void articleQuery.refetch()}
                 className="mt-6 rounded-full border border-foreground/20 px-4 py-2 text-sm font-medium transition-colors hover:bg-foreground/5"
               >
-                Tentar novamente
+                {common("retry")}
               </button>
             )}
           </section>
@@ -95,19 +125,21 @@ export default function ArticleDetail({ slug }: { slug: string }) {
           !notFound && (
             <section className="mt-10 rounded-2xl border border-foreground/10 px-6 py-14 text-center">
               <h1 className="text-2xl font-semibold">
-                Não foi possível carregar o artigo
+                {t("loadError")}
               </h1>
               <p className="mt-3 text-sm text-foreground/65">
-                A API retornou HTTP {response?.status ?? "desconhecido"}.
+                {t("apiStatus", {
+                  status: response?.status ?? "unknown",
+                })}
               </p>
             </section>
           )}
 
         {!articleQuery.isPending && !articleQuery.isError && unpublished && (
           <section className="mt-10 rounded-2xl border border-foreground/10 px-6 py-14 text-center">
-            <h1 className="text-2xl font-semibold">Artigo indisponível</h1>
+            <h1 className="text-2xl font-semibold">{t("unavailable")}</h1>
             <p className="mt-3 text-sm text-foreground/65">
-              Este conteúdo ainda não foi publicado.
+              {t("unpublished")}
             </p>
           </section>
         )}
@@ -121,8 +153,7 @@ export default function ArticleDetail({ slug }: { slug: string }) {
               role="status"
               className="mt-6 rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200"
             >
-              Pré-visualização: este post não está publicado. Apenas usuários
-              autorizados podem visualizar este conteúdo.
+              {t("preview")}
             </p>
           )}
 
@@ -152,12 +183,12 @@ export default function ArticleDetail({ slug }: { slug: string }) {
                 )}
                 <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-foreground/55">
                   {article.author?.name && <span>{article.author.name}</span>}
-                  {formatDate(article.published_at) && (
+                  {publishedDate && (
                     <time dateTime={article.published_at ?? undefined}>
-                      {formatDate(article.published_at)}
+                      {publishedDate}
                     </time>
                   )}
-                  <span>{article.views} visualizações</span>
+                  <span>{t("views", { count: article.views })}</span>
                 </div>
               </header>
 

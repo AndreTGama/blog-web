@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import CategoriesFilter from "@/components/filters/categories";
 import PostsList from "@/components/posts/posts-list";
 import HeaderArticle from "@/components/headers/header-article";
 
 export default function PostsArchive() {
+  const t = useTranslations("archive");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [page, setPage] = useState(1);
 
@@ -25,11 +27,7 @@ export default function PostsArchive() {
 
   return (
     <>
-      <HeaderArticle
-        eyebrow="Biblioteca"
-        title="Todos os artigos"
-        description="Explore conteúdos sobre tecnologia, arquitetura e desenvolvimento."
-      />
+      <HeaderArticle />
       <main
         id="conteudos"
         className="mx-auto min-h-screen max-w-7xl px-5 pb-14 pt-14 sm:px-8 lg:pb-20 lg:pt-20"
@@ -45,7 +43,7 @@ export default function PostsArchive() {
             onToggleCategory={toggleCategory}
             page={page}
             onPageChange={setPage}
-            heading="Artigos"
+            heading={t("heading")}
             itemsPerPage={15}
           />
         </div>

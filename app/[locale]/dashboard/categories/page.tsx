@@ -8,8 +8,9 @@ import {
 } from "@/lib/api/generated";
 import type { CategoriesIndexParams } from "@/lib/api/generated/models";
 import { useAccessToken } from "@/lib/auth/session";
+import { useLocale, useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import RowActions from "@/components/dashboard/row-actions";
@@ -59,16 +60,19 @@ function readCategories(items: unknown): CategoryRow[] | null {
   return rows;
 }
 
-function formatDate(value: string | null) {
+function formatDate(value: string | null, locale: string) {
   if (!value) return "—";
 
   const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? "—"
-    : new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(date);
+    : new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(date);
 }
 
 export default function CategoriesPage() {
+  const t = useTranslations("categoryAdmin");
+  const common = useTranslations("dashboard");
+  const locale = useLocale();
   const accessToken = useAccessToken();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
@@ -97,7 +101,7 @@ export default function CategoriesPage() {
   function handleDelete(category: CategoryRow) {
     if (
       !window.confirm(
-        `Tem certeza que deseja excluir a categoria "${category.name}"?`,
+        t("confirmDelete", { name: category.name }),
       )
     ) {
       return;
@@ -114,12 +118,12 @@ export default function CategoriesPage() {
               "message" in response.data &&
               typeof response.data.message === "string"
                 ? response.data.message
-                : `Não foi possível excluir a categoria (HTTP ${response.status}).`;
+                : t("deleteError", { status: response.status });
             toast.error(message);
             return;
           }
 
-          toast.success("Categoria excluída com sucesso.");
+          toast.success(t("deleteSuccess"));
           void queryClient.invalidateQueries({
             queryKey: getCategoriesIndexQueryKey(),
           });
@@ -134,7 +138,7 @@ export default function CategoriesPage() {
           toast.error(
             error instanceof Error
               ? error.message
-              : "Não foi possível conectar à API para excluir a categoria.",
+              : t("deleteConnectionError"),
           );
         },
       },
@@ -142,22 +146,22 @@ export default function CategoriesPage() {
   }
 
   if (categoriesQuery.isPending) {
-    return <p className="text-foreground/70">Carregando categorias...</p>;
+    return <p className="text-foreground/70">{t("loading")}</p>;
   }
 
   if (categoriesQuery.isError) {
     return (
       <section className="mx-auto max-w-5xl rounded-lg border border-foreground/10 bg-foreground/[0.04] p-6">
-        <h1 className="text-2xl font-semibold">Categorias</h1>
+        <h1 className="text-2xl font-semibold">{t("title")}</h1>
         <p className="mt-3 text-foreground/70">
-          Não foi possível carregar as categorias.
+          {t("loadError")}
         </p>
         <button
           type="button"
           onClick={() => void categoriesQuery.refetch()}
           className="mt-4 rounded-md bg-foreground px-4 py-2 text-sm font-semibold text-background"
         >
-          Tentar novamente
+          {t("retry")}
         </button>
       </section>
     );
@@ -167,7 +171,7 @@ export default function CategoriesPage() {
   if (response.status !== 200) {
     return (
       <p role="alert" className="text-foreground/70">
-        A API não conseguiu retornar as categorias (HTTP {response.status}).
+        {t("apiError", { status: response.status })}
       </p>
     );
   }
@@ -181,10 +185,9 @@ export default function CategoriesPage() {
   if (!categories || !Number.isFinite(currentPage) || !Number.isFinite(lastPage)) {
     return (
       <section className="mx-auto max-w-5xl rounded-lg border border-foreground/10 bg-foreground/[0.04] p-6">
-        <h1 className="text-2xl font-semibold">Categorias</h1>
+        <h1 className="text-2xl font-semibold">{t("title")}</h1>
         <p role="alert" className="mt-3 text-foreground/70">
-          A resposta da API não corresponde ao formato esperado para a lista de
-          categorias.
+          {t("invalidResponse")}
         </p>
       </section>
     );
@@ -194,17 +197,17 @@ export default function CategoriesPage() {
     <div className="mx-auto max-w-5xl">
       <header className="flex flex-col gap-4 border-b border-foreground/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm text-foreground/60">Painel administrativo</p>
-          <h1 className="mt-2 text-3xl font-semibold">Categorias</h1>
+          <p className="text-sm text-foreground/60">{common("adminLabel")}</p>
+          <h1 className="mt-2 text-3xl font-semibold">{t("title")}</h1>
           <p className="mt-2 text-foreground/70">
-            Organize os assuntos dos posts do blog.
+            {t("listDescription")}
           </p>
         </div>
         <Link
           href="/dashboard/categories/new"
           className="inline-flex w-fit rounded-md bg-foreground px-4 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-80"
         >
-          Criar categoria
+          {t("new")}
         </Link>
       </header>
 
@@ -213,11 +216,11 @@ export default function CategoriesPage() {
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="border-b border-foreground/10 text-xs uppercase tracking-wide text-foreground/60">
               <tr>
-                <th scope="col" className="px-5 py-4 font-medium">Nome</th>
+                <th scope="col" className="px-5 py-4 font-medium">{t("name")}</th>
                 <th scope="col" className="px-5 py-4 font-medium">Slug</th>
-                <th scope="col" className="px-5 py-4 font-medium">Posts relacionados</th>
-                <th scope="col" className="px-5 py-4 font-medium">Criada em</th>
-                <th scope="col" className="px-5 py-4 font-medium">Ações</th>
+                <th scope="col" className="px-5 py-4 font-medium">{t("relatedPosts")}</th>
+                <th scope="col" className="px-5 py-4 font-medium">{t("createdAt")}</th>
+                <th scope="col" className="px-5 py-4 font-medium">{t("actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-foreground/10">
@@ -226,10 +229,13 @@ export default function CategoriesPage() {
                   <td className="px-5 py-4 font-medium">{category.name}</td>
                   <td className="px-5 py-4 text-foreground/65">{category.slug}</td>
                   <td className="px-5 py-4 text-foreground/65">
-                    {category.postsCount ?? "Não informado"}
+                    {category.postsCount ?? t("notReported")}
                   </td>
                   <td className="px-5 py-4 text-foreground/65">
-                    {formatDate(category.createdAt)}
+                    {formatDate(
+                      category.createdAt,
+                      locale === "pt" ? "pt-BR" : "en-US",
+                    )}
                   </td>
                   <td className="px-5 py-4">
                     <RowActions
@@ -243,8 +249,8 @@ export default function CategoriesPage() {
                       deleteLabel={
                         deleteCategory.isPending &&
                         deleteCategory.variables?.category === category.id
-                          ? "Excluindo..."
-                          : "Excluir"
+                          ? t("deleting")
+                          : t("delete")
                       }
                     />
                   </td>
@@ -256,7 +262,7 @@ export default function CategoriesPage() {
                     colSpan={5}
                     className="px-5 py-10 text-center text-foreground/60"
                   >
-                    Nenhuma categoria cadastrada.
+                    {t("none")}
                   </td>
                 </tr>
               )}
@@ -267,8 +273,11 @@ export default function CategoriesPage() {
 
       <footer className="mt-4 flex flex-col gap-3 text-sm text-foreground/60 sm:flex-row sm:items-center sm:justify-between">
         <p>
-          {Number.isFinite(total) ? `${total} categoria(s)` : "Categorias"} ·
-          Página {currentPage} de {lastPage}
+          {t("pagination", {
+            total: Number.isFinite(total) ? total : 0,
+            current: currentPage,
+            last: lastPage,
+          })}
         </p>
         <div className="flex gap-2">
           <button
@@ -277,7 +286,7 @@ export default function CategoriesPage() {
             disabled={currentPage <= 1}
             className="rounded-md border border-foreground/15 px-3 py-2 text-foreground transition-colors hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Anterior
+            {t("previous")}
           </button>
           <button
             type="button"
@@ -285,7 +294,7 @@ export default function CategoriesPage() {
             disabled={currentPage >= lastPage}
             className="rounded-md border border-foreground/15 px-3 py-2 text-foreground transition-colors hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Próxima
+            {t("next")}
           </button>
         </div>
       </footer>

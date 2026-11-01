@@ -1,5 +1,5 @@
 import PublicHome from "@/components/home/public-home";
 
-export default function Home() {
+export default function HomePage() {
   return <PublicHome />;
 }
