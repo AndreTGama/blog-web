@@ -13,6 +13,12 @@ export type PostProps = {
   categories?: CategoryProps[];
 };
 
+export type PostCardProps = {
+  post: PostProps;
+  selectedCategories: string[];
+  onToggleCategory: (categoryId: string) => void;
+};
+
 export type PostsListProps = {
   selectedCategories: string[];
   onToggleCategory: (categoryId: string) => void;
