@@ -343,20 +343,20 @@ export type postsShowResponseError = (postsShowResponse401 | postsShowResponse40
 
 export type postsShowResponse = (postsShowResponseSuccess | postsShowResponseError)
 
-export const getPostsShowUrl = (postResource: string,) => {
+export const getPostsShowUrl = (post: string,) => {
 
 
 
 
-  return `/v1/posts/${postResource}`
+  return `/v1/posts/${post}`
 }
 
 /**
  * @summary Display the specified post
  */
-export const postsShow = async (postResource: string, options?: RequestInit): Promise<postsShowResponse> => {
+export const postsShow = async (post: string, options?: RequestInit): Promise<postsShowResponse> => {
 
-  const res = await fetch(getPostsShowUrl(postResource),
+  const res = await fetch(getPostsShowUrl(post),
   {
     ...options,
     method: 'GET'
@@ -376,29 +376,29 @@ export const postsShow = async (postResource: string, options?: RequestInit): Pr
 
 
 
-export const getPostsShowQueryKey = (postResource: string,) => {
+export const getPostsShowQueryKey = (post: string,) => {
     return [
-    `/v1/posts/${postResource}`
+    `/v1/posts/${post}`
     ] as const;
     }
 
 
-export const getPostsShowQueryOptions = <TData = Awaited<ReturnType<typeof postsShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(postResource: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>>, fetch?: RequestInit}
+export const getPostsShowQueryOptions = <TData = Awaited<ReturnType<typeof postsShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(post: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getPostsShowQueryKey(postResource);
+  const queryKey =  queryOptions?.queryKey ?? getPostsShowQueryKey(post);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof postsShow>>> = ({ signal }) => postsShow(postResource, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof postsShow>>> = ({ signal }) => postsShow(post, { signal, ...fetchOptions });
 
 
 
 
 
-   return  { queryKey, queryFn, enabled: postResource !== null && postResource !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, enabled: post !== null && post !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type PostsShowQueryResult = NonNullable<Awaited<ReturnType<typeof postsShow>>>
@@ -406,7 +406,7 @@ export type PostsShowQueryError = AuthenticationExceptionResponse | ModelNotFoun
 
 
 export function usePostsShow<TData = Awaited<ReturnType<typeof postsShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(
- postResource: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>> & Pick<
+ post: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof postsShow>>,
           TError,
@@ -416,7 +416,7 @@ export function usePostsShow<TData = Awaited<ReturnType<typeof postsShow>>, TErr
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function usePostsShow<TData = Awaited<ReturnType<typeof postsShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(
- postResource: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>> & Pick<
+ post: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof postsShow>>,
           TError,
@@ -426,7 +426,7 @@ export function usePostsShow<TData = Awaited<ReturnType<typeof postsShow>>, TErr
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function usePostsShow<TData = Awaited<ReturnType<typeof postsShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(
- postResource: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>>, fetch?: RequestInit}
+ post: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>>, fetch?: RequestInit}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -434,11 +434,11 @@ export function usePostsShow<TData = Awaited<ReturnType<typeof postsShow>>, TErr
  */
 
 export function usePostsShow<TData = Awaited<ReturnType<typeof postsShow>>, TError = AuthenticationExceptionResponse | ModelNotFoundExceptionResponse>(
- postResource: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>>, fetch?: RequestInit}
+ post: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof postsShow>>, TError, TData>>, fetch?: RequestInit}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getPostsShowQueryOptions(postResource,options)
+  const queryOptions = getPostsShowQueryOptions(post,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

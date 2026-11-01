@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 
 import PostCard from "@/components/cards/post-card";
 import { CategoryProps } from "@/types/Category";
@@ -69,6 +70,9 @@ export default function PostsList({
   onToggleCategory,
   page,
   onPageChange,
+  heading = "Últimos conteúdos",
+  itemsPerPage = CONTENT_LIMIT,
+  showAllLink = false,
 }: PostsListProps) {
   const postsParams = {
     limit: API_PAGE_SIZE,
@@ -109,12 +113,12 @@ export default function PostsList({
 
   const pageCount = Math.max(
     1,
-    Math.ceil(filteredPosts.length / CONTENT_LIMIT),
+    Math.ceil(filteredPosts.length / itemsPerPage),
   );
   const currentPage = Math.min(page, pageCount);
   const pagePosts = filteredPosts.slice(
-    (currentPage - 1) * CONTENT_LIMIT,
-    currentPage * CONTENT_LIMIT,
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
   );
 
   const postsError =
@@ -132,15 +136,25 @@ export default function PostsList({
           <h2 id="content-heading" className="mt-2 text-2xl font-semibold">
             {selectedCategories.length > 0
               ? `${selectedCategories.length} categoria(s) selecionada(s)`
-              : "Últimos conteúdos"}
+              : heading}
           </h2>
         </div>
-        {!postsError && !postsQuery.isPending && (
-          <p className="text-sm text-foreground/55">
-            {filteredPosts.length}{" "}
-            {filteredPosts.length === 1 ? "artigo" : "artigos"}
-          </p>
-        )}
+        <div className="flex items-center gap-4">
+          {!postsError && !postsQuery.isPending && (
+            <p className="text-sm text-foreground/55">
+              {filteredPosts.length}{" "}
+              {filteredPosts.length === 1 ? "artigo" : "artigos"}
+            </p>
+          )}
+          {showAllLink && (
+            <Link
+              href="/artigos"
+              className="text-sm font-medium text-foreground/75 underline decoration-foreground/25 underline-offset-4 transition-colors hover:text-foreground"
+            >
+              Ver todos
+            </Link>
+          )}
+        </div>
       </div>
 
       {postsQuery.isPending && (

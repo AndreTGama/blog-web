@@ -22,6 +22,7 @@ export interface UpdatePostRequest {
   excerpt?: string | null;
   /** @nullable */
   status?: UpdatePostRequestStatus;
+  allow_comments?: boolean;
   /** @nullable */
   post_metas?: UpdatePostRequestPostMetasItem[] | null;
   /** @nullable */

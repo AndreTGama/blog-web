@@ -40,6 +40,7 @@ export default function PublicHome() {
           onToggleCategory={toggleCategory}
           page={page}
           onPageChange={setPage}
+          showAllLink
         />
       </main>
     </div>

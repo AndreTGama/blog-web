@@ -24,4 +24,7 @@ export type PostsListProps = {
   onToggleCategory: (categoryId: string) => void;
   page: number;
   onPageChange: (page: number) => void;
+  heading?: string;
+  itemsPerPage?: number;
+  showAllLink?: boolean;
 };

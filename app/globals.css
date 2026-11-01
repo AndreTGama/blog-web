@@ -9,7 +9,7 @@
 
 :root {
   color-scheme: light;
-  --background: rgb(230, 230, 230);
+  --background: #f6fafc;
   --foreground: rgb(24, 24, 24);
   --button-hover-background: rgb(34, 34, 34);
   --button-hover-foreground: rgb(245, 245, 245);
@@ -19,7 +19,7 @@ html.dark {
   color-scheme: dark;
   --background: rgb(34, 34, 34);
   --foreground: rgb(245, 245, 245);
-  --button-hover-background: rgb(230, 230, 230);
+  --button-hover-background: #f6fafc;
   --button-hover-foreground: rgb(24, 24, 24);
 }
 

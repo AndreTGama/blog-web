@@ -6,24 +6,18 @@ import { useAccessToken } from "@/lib/auth/session";
 import Image from "next/image";
 import Link from "next/link";
 import ThemeToggle from "@/components/ui/theme-toggle";
+import { formatDate } from "@/lib/utils/format";
 
-function formatDate(dateValue: string | null) {
-  if (!dateValue) return null;
 
-  const date = new Date(dateValue);
-  return Number.isNaN(date.getTime())
-    ? null
-    : new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" }).format(date);
-}
-
-export default function ArticleDetail({ id }: { id: string }) {
+export default function ArticleDetail({ slug }: { slug: string }) {
   const accessToken = useAccessToken();
-  const articleQuery = usePostsShow(id, {
+  const postIdentifier = encodeURIComponent(slug);
+  const articleQuery = usePostsShow(postIdentifier, {
     fetch: accessToken
       ? { headers: { Authorization: `Bearer ${accessToken}` } }
       : undefined,
     query: {
-      queryKey: [...getPostsShowQueryKey(id), accessToken],
+      queryKey: [...getPostsShowQueryKey(postIdentifier), accessToken],
       retry: false,
     },
   });
@@ -39,7 +33,7 @@ export default function ArticleDetail({ id }: { id: string }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <nav aria-label="Navegação principal" className="border-b border-foreground/10">
-        <div className="mx-auto flex h-18 max-w-4xl items-center justify-between gap-4 px-5 sm:px-8">
+        <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
           <Link
             href="/"
             aria-label="Blog de tecnologia - início"
@@ -54,7 +48,7 @@ export default function ArticleDetail({ id }: { id: string }) {
         </div>
       </nav>
 
-      <main className="mx-auto min-h-[70vh] max-w-4xl px-5 py-10 sm:px-8 sm:py-16">
+      <main className="mx-auto min-h-[70vh] max-w-7xl px-5 py-10 sm:px-8 sm:py-16">
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-sm text-foreground/65 transition-colors hover:text-foreground"
@@ -185,19 +179,6 @@ export default function ArticleDetail({ id }: { id: string }) {
             </article>
           )}
       </main>
-
-      <footer className="border-t border-foreground/10">
-        <div className="mx-auto flex max-w-4xl flex-col gap-3 px-5 py-8 sm:px-8">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/50">
-            Mapa do site
-          </h2>
-          <nav aria-label="Mapa do site">
-            <Link href="/" className="text-sm text-foreground/65 transition-colors hover:text-foreground">
-              Início
-            </Link>
-          </nav>
-        </div>
-      </footer>
     </div>
   );
 }

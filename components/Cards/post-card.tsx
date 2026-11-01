@@ -13,9 +13,9 @@ export default function PostCard({
   onToggleCategory,
 }: PostCardProps) {
   return (
-    <article className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.025] transition-colors hover:bg-foreground/[0.05]">
+    <article className="group shadow-xl hover:shadow-xl/20 flex min-w-0 flex-col overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.025] transition-colors hover:bg-foreground/[0.05]">
       <Link
-        href={`/artigos/${encodeURIComponent(post.id)}`}
+        href={`/artigos/${encodeURIComponent(post.slug)}`}
         className="text-sm font-medium text-foreground/75 transition-colors hover:text-foreground"
       >
         <div className="relative aspect-[16/9] overflow-hidden bg-foreground/[0.07]">

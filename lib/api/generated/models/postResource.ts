@@ -12,6 +12,7 @@ export interface PostResource {
   id: string;
   /** @nullable */
   cover_image: string | null;
+  allow_comments: string;
   title: string;
   slug: string;
   excerpt: string;

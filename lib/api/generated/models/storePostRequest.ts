@@ -17,6 +17,7 @@ export interface StorePostRequest {
   title: string;
   excerpt: string;
   status: StorePostRequestStatus;
+  allow_comments?: boolean;
   /** @nullable */
   post_metas?: StorePostRequestPostMetasItem[] | null;
   /** @minItems 1 */
