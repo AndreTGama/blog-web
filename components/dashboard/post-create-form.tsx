@@ -4,18 +4,20 @@ import {
   getCategoriesIndexQueryKey,
   getPostsIndexQueryKey,
   getPostsStoreUrl,
+  useCategoriesStore,
   useCategoriesIndex,
 } from "@/lib/api/generated";
 import {
   StorePostRequestStatus,
+  type StoreCategoryRequest,
   type StorePostRequest,
 } from "@/lib/api/generated/models";
 import { useAccessToken } from "@/lib/auth/session";
 import PostContentEditor from "@/components/dashboard/post-content-editor";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { Link, useRouter } from "@/i18n/navigation";
-import { useState, type FormEvent } from "react";
+import { useRouter } from "@/i18n/navigation";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "react-toastify";
 
 type CategoryOption = {
@@ -46,22 +48,34 @@ function readCategoryOptions(items: unknown): CategoryOption[] | null {
   return categories;
 }
 
-function getResponseMessage(data: unknown) {
+function getResponseMessage(
+  data: unknown,
+  formatFieldError?: (field: string, message: string) => string,
+  validationPrefix?: string,
+) {
   if (!isRecord(data)) return null;
-  const messages: string[] = [];
+  const fieldErrors: string[] = [];
 
-  if (typeof data.message === "string") messages.push(data.message);
   if (isRecord(data.errors)) {
-    for (const value of Object.values(data.errors)) {
+    for (const [field, value] of Object.entries(data.errors)) {
       if (Array.isArray(value)) {
-        messages.push(
-          ...value.filter((message): message is string => typeof message === "string"),
-        );
+        for (const message of value) {
+          if (typeof message !== "string") continue;
+          fieldErrors.push(
+            formatFieldError
+              ? formatFieldError(field, message)
+              : `${field}: ${message}`,
+          );
+        }
       }
     }
   }
 
-  return messages.length > 0 ? messages.join(" ") : null;
+  if (fieldErrors.length > 0) {
+    const details = fieldErrors.join("; ");
+    return validationPrefix ? `${validationPrefix}: ${details}` : details;
+  }
+  return typeof data.message === "string" ? data.message : null;
 }
 
 async function createPostWithImage(
@@ -104,6 +118,10 @@ export default function PostCreateForm({
   );
   const [locale, setLocale] = useState<"pt" | "en">(initialLocale);
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
+  const [categorySelectOpen, setCategorySelectOpen] = useState(false);
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const categorySelectRef = useRef<HTMLDivElement>(null);
 
   const categoryParams = { limit: 100, page: 1 } as const;
   const categoriesQuery = useCategoriesIndex(categoryParams, {
@@ -116,6 +134,11 @@ export default function PostCreateForm({
       retry: false,
     },
   });
+  const createCategory = useCategoriesStore({
+    fetch: accessToken
+      ? { headers: { Authorization: "Bearer " + accessToken } }
+      : undefined,
+  });
 
   const createPost = useMutation({
     mutationFn: (data: FormData) => createPostWithImage(data, accessToken),
@@ -126,12 +149,115 @@ export default function PostCreateForm({
     categoriesResponse?.status === 200
       ? readCategoryOptions(categoriesResponse.data.data.items)
       : null;
+  const postFieldLabels: Record<string, string> = {
+    title: t("title"),
+    excerpt: t("excerpt"),
+    content: t("content"),
+    cover_image: t("coverImage"),
+    category_ids: t("categories"),
+    locale: t("language"),
+    status: t("status"),
+    translation_group_id: t("translationOf"),
+  };
 
-  function toggleCategory(categoryId: string) {
-    setCategoryIds((selected) =>
-      selected.includes(categoryId)
-        ? selected.filter((id) => id !== categoryId)
-        : [...selected, categoryId],
+  function formatPostFieldError(field: string, message: string) {
+    const normalizedField = field.replace(/\.\d+$/, "").replace(/\[\]$/, "");
+    const fieldLabel =
+      postFieldLabels[normalizedField] ??
+      normalizedField.replace(/[_.[\]]/g, " ");
+
+    return /\brequired\b/i.test(message)
+      ? t("requiredField", { field: fieldLabel })
+      : t("fieldValidationError", { field: fieldLabel, message });
+  }
+
+  useEffect(() => {
+    if (!categorySelectOpen) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      if (
+        event.target instanceof Node &&
+        !categorySelectRef.current?.contains(event.target)
+      ) {
+        setCategorySelectOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setCategorySelectOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [categorySelectOpen]);
+
+  useEffect(() => {
+    if (!categoryModalOpen || createCategory.isPending) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setCategoryModalOpen(false);
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [categoryModalOpen, createCategory.isPending]);
+
+  function handleCreateCategory(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const name = newCategoryName.trim();
+    const previousIds = new Set(categories?.map((category) => category.id));
+    const data: StoreCategoryRequest = { name };
+
+    createCategory.mutate(
+      { data },
+      {
+        onSuccess: async (response) => {
+          if (response.status < 200 || response.status >= 300) {
+            toast.error(
+              getResponseMessage(response.data) ??
+                t("categoryCreateError", { status: response.status }),
+            );
+            return;
+          }
+
+          await queryClient.invalidateQueries({
+            queryKey: getCategoriesIndexQueryKey(),
+            refetchType: "none",
+          });
+          const refreshedCategories = await categoriesQuery.refetch();
+          const updatedCategories =
+            refreshedCategories.data?.status === 200
+              ? readCategoryOptions(refreshedCategories.data.data.data.items)
+              : null;
+          const createdCategory =
+            updatedCategories?.find(
+              (category) =>
+                category.name === name && !previousIds.has(category.id),
+            ) ?? updatedCategories?.find((category) => category.name === name);
+
+          setCategoryModalOpen(false);
+          setNewCategoryName("");
+
+          if (!createdCategory) {
+            toast.error(t("categoryCreatedNotSelected"));
+            return;
+          }
+
+          setCategoryIds((selected) => [...selected, createdCategory.id]);
+          toast.success(t("categoryCreateSuccess"));
+        },
+        onError: (error) => {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : t("categoryCreateConnectionError"),
+          );
+        },
+      },
     );
   }
 
@@ -173,7 +299,11 @@ export default function PostCreateForm({
         onSuccess: (response) => {
           if (response.status !== 201) {
             toast.error(
-              getResponseMessage(response.data) ??
+              getResponseMessage(
+                response.data,
+                formatPostFieldError,
+                t("validationErrorPrefix"),
+              ) ??
                 t("createError", { status: response.status }),
             );
             return;
@@ -197,10 +327,11 @@ export default function PostCreateForm({
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="mt-8 space-y-6 rounded-lg border border-foreground/10 bg-foreground/[0.03] p-6"
-    >
+    <>
+      <form
+        onSubmit={handleSubmit}
+        className="mt-8 space-y-6 rounded-lg border border-foreground/10 bg-foreground/[0.03] p-6"
+      >
       <div>
         <label htmlFor="post-locale" className="mb-2 block text-sm font-medium">
           {t("language")}
@@ -254,15 +385,18 @@ export default function PostCreateForm({
       </div>
 
       <div>
-        <label htmlFor="post-cover-image" className="mb-2 block text-sm font-medium">
-          {t("coverImage")}{" "}
-          <span className="font-normal text-foreground/55">{t("optional")}</span>
+        <label
+          htmlFor="post-cover-image"
+          className="mb-2 block text-sm font-medium"
+        >
+          {t("coverImage")}
         </label>
         <input
           id="post-cover-image"
           name="cover_image"
           type="file"
           accept="image/*"
+          required
           className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-foreground placeholder:text-foreground/45 focus:border-foreground focus:outline-none"
         />
       </div>
@@ -281,7 +415,18 @@ export default function PostCreateForm({
       </div>
 
       <fieldset>
-        <legend className="mb-2 text-sm font-medium">{t("categories")}</legend>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+          <label htmlFor="post-category" className="text-sm font-medium">
+            {t("categories")}
+          </label>
+          <button
+            type="button"
+            onClick={() => setCategoryModalOpen(true)}
+            className="text-sm font-medium text-foreground/75 underline underline-offset-4 hover:text-foreground"
+          >
+            {t("createCategory")}
+          </button>
+        </div>
         {categoriesQuery.isPending && (
           <p className="text-sm text-foreground/60">{t("loadingCategories")}</p>
         )}
@@ -302,33 +447,107 @@ export default function PostCreateForm({
             {t("apiCategoriesError", { status: categoriesResponse.status })}
           </p>
         )}
+        {categories === null &&
+          !categoriesQuery.isPending &&
+          !categoriesQuery.isError &&
+          categoriesResponse?.status === 200 && (
+            <p role="alert" className="text-sm text-red-800 dark:text-red-300">
+              {t("invalidCategories")}
+            </p>
+          )}
         {categories && categories.length === 0 && (
-          <p className="text-sm text-foreground/65">
-            {t("noCategories")}{" "}
-            <Link
-              href="/dashboard/categories/new"
-              className="underline underline-offset-2 hover:text-foreground"
-            >
-              {t("createCategory")}
-            </Link>
-          </p>
+          <p className="text-sm text-foreground/65">{t("noCategories")}</p>
         )}
         {categories && categories.length > 0 && (
-          <div className="grid gap-2 rounded-md border border-foreground/15 p-3 sm:grid-cols-2">
-            {categories.map((category) => (
-              <label
-                key={category.id}
-                className="flex items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-foreground/5"
+          <div ref={categorySelectRef} className="relative w-full sm:max-w-md">
+            <button
+              id="post-category"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={categorySelectOpen}
+              aria-controls="post-category-options"
+              onClick={() => setCategorySelectOpen((open) => !open)}
+              className="flex w-full items-center justify-between gap-3 rounded-md border border-foreground/20 bg-background px-3 py-2 text-left text-foreground focus:border-foreground focus:outline-none"
+            >
+              <span
+                className={
+                  categoryIds.length > 0
+                    ? "truncate"
+                    : "truncate text-foreground/55"
+                }
               >
-                <input
-                  type="checkbox"
-                  checked={categoryIds.includes(category.id)}
-                  onChange={() => toggleCategory(category.id)}
-                  className="size-4 accent-foreground"
+                {categories
+                  .filter((category) => categoryIds.includes(category.id))
+                  .map((category) => category.name)
+                  .join(", ") || t("selectCategoryPlaceholder")}
+              </span>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 20 20"
+                fill="none"
+                className={`size-4 shrink-0 transition-transform ${categorySelectOpen ? "rotate-180" : ""}`}
+              >
+                <path
+                  d="m5 7.5 5 5 5-5"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
                 />
-                {category.name}
-              </label>
-            ))}
+              </svg>
+            </button>
+            {categorySelectOpen && (
+              <div
+                id="post-category-options"
+                role="listbox"
+                aria-label={t("categories")}
+                aria-multiselectable="true"
+                className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-foreground/20 bg-background p-1 shadow-lg"
+              >
+                {categories.map((category) => {
+                  const selected = categoryIds.includes(category.id);
+
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      role="option"
+                      aria-selected={selected}
+                      onClick={() =>
+                        setCategoryIds((current) =>
+                          selected
+                            ? current.filter((id) => id !== category.id)
+                            : [...current, category.id],
+                        )
+                      }
+                      className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm hover:bg-foreground/5 focus:bg-foreground/5 focus:outline-none"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`flex size-4 shrink-0 items-center justify-center rounded border ${
+                          selected
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-foreground/40"
+                        }`}
+                      >
+                        {selected && (
+                          <svg viewBox="0 0 16 16" fill="none" className="size-3">
+                            <path
+                              d="m3 8 3 3 7-7"
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                            />
+                          </svg>
+                        )}
+                      </span>
+                      <span>{category.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
         <p className="mt-2 text-xs text-foreground/55">
@@ -368,6 +587,70 @@ export default function PostCreateForm({
       >
         {createPost.isPending ? t("pending") : t("submitCreate")}
       </button>
-    </form>
+      </form>
+
+      {categoryModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => {
+            if (!createCategory.isPending) setCategoryModalOpen(false);
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-category-title"
+            className="w-full max-w-md rounded-lg border border-foreground/15 bg-background p-6 text-foreground shadow-xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2 id="create-category-title" className="text-xl font-semibold">
+              {t("createCategory")}
+            </h2>
+            <form onSubmit={handleCreateCategory} className="mt-5">
+              <label
+                htmlFor="new-category-name"
+                className="mb-2 block text-sm font-medium"
+              >
+                {t("categoryName")}
+              </label>
+              <input
+                id="new-category-name"
+                name="name"
+                type="text"
+                required
+                minLength={3}
+                maxLength={255}
+                autoFocus
+                value={newCategoryName}
+                onChange={(event) => setNewCategoryName(event.target.value)}
+                placeholder={t("categoryNamePlaceholder")}
+                className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-foreground placeholder:text-foreground/45 focus:border-foreground focus:outline-none"
+              />
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  disabled={createCategory.isPending}
+                  onClick={() => setCategoryModalOpen(false)}
+                  className="rounded-md border border-foreground/20 px-4 py-2 text-sm font-medium hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  type="submit"
+                  disabled={
+                    createCategory.isPending || newCategoryName.trim().length < 3
+                  }
+                  className="rounded-md bg-foreground px-4 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {createCategory.isPending
+                    ? t("categoryCreatePending")
+                    : t("categoryCreateSubmit")}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
+    </>
   );
 }

@@ -246,7 +246,7 @@ export default function PostsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto flex min-h-[calc(100vh-11rem)] w-full max-w-6xl flex-col">
       <header className="flex flex-col gap-4 border-b border-foreground/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm text-foreground/60">{common("adminLabel")}</p>
@@ -283,9 +283,9 @@ export default function PostsPage() {
         </button>
       </form>
 
-      <div className="mt-6 overflow-hidden rounded-lg border border-foreground/10 bg-foreground/[0.03]">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-left text-sm">
+      <div className="mt-6 flex min-h-[18rem] flex-1 flex-col rounded-lg border border-foreground/10 bg-foreground/[0.03]">
+        <div className="h-full flex-1 overflow-x-auto rounded-lg">
+          <table className="h-full w-full min-w-[760px] text-left text-sm">
             <thead className="border-b border-foreground/10 text-xs uppercase tracking-wide text-foreground/60">
               <tr>
                 <th scope="col" className="px-5 py-4 font-medium">{formT("title")}</th>

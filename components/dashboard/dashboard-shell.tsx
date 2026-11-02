@@ -5,7 +5,11 @@ import {
   useAuthLogout,
   useAuthUser,
 } from "@/lib/api/generated";
-import { clearAccessToken, useAccessToken } from "@/lib/auth/session";
+import {
+  clearAccessToken,
+  useAccessToken,
+  useSessionReady,
+} from "@/lib/auth/session";
 import { useLocale, useTranslations } from "next-intl";
 import LanguageSwitcher from "@/components/ui/language-switcher";
 import ThemeToggle from "@/components/ui/theme-toggle";
@@ -32,6 +36,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const accessToken = useAccessToken();
+  const sessionReady = useSessionReady();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>([]);
   const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
@@ -71,6 +76,8 @@ export default function DashboardShell({ children }: DashboardShellProps) {
   ];
 
   useEffect(() => {
+    if (!sessionReady) return;
+
     if (!accessToken) {
       router.replace("/login");
       return;
@@ -80,7 +87,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       clearAccessToken();
       router.replace("/login");
     }
-  }, [accessToken, authResponse, router]);
+  }, [accessToken, authResponse, router, sessionReady]);
 
   function toggleGroup(label: string) {
     const activeGroup = menuGroups.find((group) => group.label === label);
@@ -123,7 +130,12 @@ export default function DashboardShell({ children }: DashboardShellProps) {
     });
   }
 
-  if (!accessToken || userQuery.isPending || authResponse?.status === 401) {
+  if (
+    !sessionReady ||
+    !accessToken ||
+    userQuery.isPending ||
+    authResponse?.status === 401
+  ) {
     return <LoadingScreen message={t("verifying")} />;
   }
 

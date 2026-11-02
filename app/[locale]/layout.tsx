@@ -8,6 +8,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 
 import QueryProvider from "@/components/providers/query-provider";
+import { ArticleLanguageProvider } from "@/components/ui/article-language-context";
 import { locales } from "@/i18n/constants";
 
 const geistSans = Geist({
@@ -62,9 +63,9 @@ export default async function LocaleLayout({
     >
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
-          <QueryProvider>
-            {children}
-          </QueryProvider>
+          <ArticleLanguageProvider>
+            <QueryProvider>{children}</QueryProvider>
+          </ArticleLanguageProvider>
         </NextIntlClientProvider>
       </body>
     </html>

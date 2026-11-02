@@ -19,8 +19,24 @@ function getSessionToken() {
   return window.localStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
+function getSessionReady() {
+  return true;
+}
+
+function getServerSessionReady() {
+  return false;
+}
+
 export function useAccessToken() {
   return useSyncExternalStore(subscribeToSession, getSessionToken, () => null);
+}
+
+export function useSessionReady() {
+  return useSyncExternalStore(
+    subscribeToSession,
+    getSessionReady,
+    getServerSessionReady,
+  );
 }
 
 export function saveAccessToken(token: string) {
